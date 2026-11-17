@@ -41,7 +41,7 @@ nav.gnav a:hover{background:var(--saffron-l)}
 nav.gnav a.cur{border-bottom-color:var(--saffron);color:var(--saffron-d)}
 main{max-width:1160px;margin:0 auto;padding:44px 24px 64px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
 main[hidden]{display:none}
-main.profile-view{grid-template-columns:260px 1fr;gap:28px;max-width:1160px}
+main.profile-view{display:block;max-width:1160px}
 .intro{padding:8px 0}
 .chip{display:inline-block;background:#fff;color:var(--saffron-d);border:1px solid #f5c488;border-left:4px solid var(--saffron);border-radius:4px;padding:5px 12px;font-weight:600;font-size:13px;font-family:inherit;margin-bottom:20px}
 .intro h1{font:700 40px/1.15 var(--font-serif);margin:0 0 16px;color:var(--navy)}
