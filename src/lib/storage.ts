@@ -30,36 +30,10 @@ export async function uploadReportFile(userId: string, file: File): Promise<Uplo
     throw new Error("File must be under 5 MB.");
   }
 
-  const storage = getFirebaseStorage();
-  const isLocalhost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname.startsWith("192.168."));
+  // Use base64 fallback directly (Spark plan - no Firebase Storage)
+  // Firebase Storage requires Blaze (paid) plan
+  console.log("Using base64 fallback (Spark plan)");
   
-  // Try Firebase Storage first (requires Blaze plan) - skip on localhost due to CORS
-  if (storage && !isLocalhost) {
-    try {
-      const timestamp = Date.now();
-      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-      const path = `reports/${userId}/${timestamp}_${sanitizedName}`;
-      const fileRef = ref(storage, path);
-
-      const snapshot = await uploadBytes(fileRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-
-      return {
-        name: file.name,
-        url: downloadURL,
-        size: file.size,
-        type: file.type,
-        isBase64: false,
-      };
-    } catch (err: any) {
-      // Fall back to base64 if Storage unavailable (Spark plan, CORS, etc.)
-      console.warn("Firebase Storage upload failed, falling back to base64:", err.message);
-      // Continue to base64 fallback
-    }
-  } else if (isLocalhost) {
-    console.log("Localhost detected, using base64 fallback directly");
-  }
-
   // Fallback: base64 in Firestore (size limited)
   if (file.size > FALLBACK_MAX_SIZE) {
     throw new Error(`File too large for fallback storage (max ${FALLBACK_MAX_SIZE / 1024} KB). Use smaller files or upgrade Firebase plan.`);
@@ -94,8 +68,8 @@ export function validateReportFile(file: File): { valid: boolean; error?: string
   if (file.size > MAX_FILE_SIZE) {
     return { valid: false, error: "File must be under 5 MB." };
   }
-  const storage = getFirebaseStorage();
-  if (!storage && file.size > FALLBACK_MAX_SIZE) {
+  // Base64 fallback limit (Spark plan)
+  if (file.size > FALLBACK_MAX_SIZE) {
     return { valid: false, error: `File too large for free tier (max ${FALLBACK_MAX_SIZE / 1024} KB).` };
   }
   return { valid: true };
