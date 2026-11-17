@@ -168,6 +168,7 @@ export default function ProfileView() {
   });
   const [vacWords, setVacWords] = useState(0);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const fileInputsRef = useRef<Record<string, HTMLInputElement | null>>({});
   const uidCounter = useRef(0);
 
@@ -218,6 +219,11 @@ export default function ProfileView() {
 
   const handleChange = (key: string, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+    setFieldErrors(prev => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   };
 
   const handleRepeaterChange = (repKey: string, index: number, fieldId: string, value: any) => {
@@ -225,6 +231,11 @@ export default function ProfileView() {
       const arr = [...prev[repKey]];
       arr[index] = { ...arr[index], [fieldId]: value };
       return { ...prev, [repKey]: arr };
+    });
+    setFieldErrors(prev => {
+      const next = { ...prev };
+      delete next[`${repKey}_${index}_${fieldId}`];
+      return next;
     });
   };
 
@@ -266,31 +277,31 @@ export default function ProfileView() {
     setVacWords(words(value));
   };
 
-  const validate = (): string[] => {
-    const errors: string[] = [];
+  const validate = (): Record<string, string> => {
+    const errors: Record<string, string> = {};
     const MOB = /^(\+?91)?[6-9]\d{9}$/;
 
     const requiredA = ["fn", "ln", "gender", "dob", "bg", "email", "mob"];
     requiredA.forEach(id => {
-      if (!formData[id]?.trim()) errors.push(`${id} is required`);
+      if (!formData[id]?.trim()) errors[id] = "Required";
     });
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(formData.email)) {
-      errors.push("Invalid email format");
+      errors.email = "Invalid email format";
     }
     if (formData.mob && !MOB.test(formData.mob.replace(/[\s-]/g, ""))) {
-      errors.push("Invalid mobile number");
+      errors.mob = "Invalid mobile number";
     }
     if (formData.abha && formData.abha.replace(/\D/g, "").length !== 14) {
-      errors.push("ABHA ID must have 14 digits");
+      errors.abha = "ABHA ID must have 14 digits";
     }
     if (formData.aadhaar && formData.aadhaar.replace(/\D/g, "").length !== 12) {
-      errors.push("Aadhaar must have 12 digits");
+      errors.aadhaar = "Aadhaar must have 12 digits";
     }
     if (formData.wt && (formData.wt < 1 || formData.wt > 500)) {
-      errors.push("Weight must be between 1 and 500 kg");
+      errors.wt = "Weight must be between 1 and 500 kg";
     }
     if (formData.dob && new Date(formData.dob) > new Date()) {
-      errors.push("Date of birth cannot be in the future");
+      errors.dob = "Date of birth cannot be in the future";
     }
 
     ["pc", "sc"].forEach(prefix => {
@@ -299,13 +310,13 @@ export default function ProfileView() {
       const mob = formData[`${prefix}_mob`];
       const rel = formData[`${prefix}_rel`];
       if (isPrimary || name || mob) {
-        if (!name?.trim()) errors.push(`${prefix}_name is required`);
-        if (!mob || !MOB.test(mob.replace(/[\s-]/g, ""))) errors.push(`${prefix}_mob invalid`);
-        if (!rel) errors.push(`${prefix}_rel required`);
+        if (!name?.trim()) errors[`${prefix}_name`] = "Required";
+        if (!mob || !MOB.test(mob.replace(/[\s-]/g, ""))) errors[`${prefix}_mob`] = "Invalid mobile number";
+        if (!rel) errors[`${prefix}_rel`] = "Required";
       }
     });
 
-    if (vacWords > 200) errors.push("Vaccinations limit is 200 words");
+    if (vacWords > 200) errors.vaccinations = "Vaccinations limit is 200 words";
 
     Object.entries(repeaters).forEach(([key, rows]) => {
       const config = SECTIONS.find(s => s.rep?.key === key)?.rep;
@@ -315,15 +326,15 @@ export default function ProfileView() {
         if (touched) {
           config.fields.forEach(f => {
             if (f.required && !row[f.id]?.trim()) {
-              errors.push(`${config.label} ${i + 1}: ${f.label} required`);
+              errors[`${key}_${i}_${f.id}`] = "Required";
             }
             if (f.type === "file" && row[f.id] instanceof File) {
               const file = row[f.id];
               if (!/\.(pdf|jpe?g|png)$/i.test(file.name)) {
-                errors.push(`${config.label} ${i + 1}: Use PDF, JPG or PNG`);
+                errors[`${key}_${i}_${f.id}`] = "Use PDF, JPG or PNG";
               }
               if (file.size > 5 * 1024 * 1024) {
-                errors.push(`${config.label} ${i + 1}: File must be under 5 MB`);
+                errors[`${key}_${i}_${f.id}`] = "File must be under 5 MB";
               }
             }
           });
@@ -337,10 +348,12 @@ export default function ProfileView() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors = validate();
-    if (errors.length > 0) {
-      setMsg({ text: `Fix ${errors.length} field${errors.length > 1 ? "s" : ""} marked in red.`, hidden: false, error: true });
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setMsg({ text: `Fix ${Object.keys(errors).length} field${Object.keys(errors).length > 1 ? "s" : ""} marked in red.`, hidden: false, error: true });
       return;
     }
+    setFieldErrors({});
 
     setSaving(true);
     setMsg({ text: "", hidden: true, error: false });
@@ -446,84 +459,22 @@ export default function ProfileView() {
 
                 {section.fields && (
                   <div className="grid">
-                    {section.fields.map(field => (
-                      <div key={field.id} className={`fld${field.type === "textarea" ? " wide" : ""}`}>
-                        <label htmlFor={`f_${field.id}`}>
-                          {field.label} {field.required && <span className="req">*</span>}
-                        </label>
-                        {field.type === "select" && (
-                          <select
-                            id={`f_${field.id}`}
-                            value={formData[field.id] || ""}
-                            onChange={e => handleChange(field.id, e.target.value)}
-                            required={field.required}
-                            disabled={saving}
-                          >
-                            <option value="">Select</option>
-                            {field.options?.map(opt => (
-                              <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                          </select>
-                        )}
-                        {field.type === "textarea" && (
-                          <textarea
-                            id={`f_${field.id}`}
-                            value={formData[field.id] || ""}
-                            onChange={e => handleChange(field.id, e.target.value)}
-                            rows={3}
-                            required={field.required}
-                            disabled={saving}
-                            placeholder={field.id === "vac" ? "Vaccine names (one per line, up to 200 words)" : ""}
-                          />
-                        )}
-                        {field.type !== "select" && field.type !== "textarea" && field.type !== "file" && (
-                          <input
-                            type={field.type}
-                            id={`f_${field.id}`}
-                            value={formData[field.id] || ""}
-                            onChange={e => handleChange(field.id, e.target.value)}
-                            required={field.required}
-                            disabled={saving}
-                            max={field.type === "date" ? new Date().toISOString().split("T")[0] : field.type === "number" ? "500" : undefined}
-                            min={field.type === "number" ? "1" : undefined}
-                            step={field.type === "number" ? "0.1" : undefined}
-                            accept={field.accept}
-                          />
-                        )}
-                        {field.type === "file" && (
-                          <input
-                            type="file"
-                            id={`f_${field.id}`}
-                            accept={field.accept}
-                            onChange={e => {
-                              const file = e.target.files?.[0];
-                              if (file) handleChange(field.id, file);
-                            }}
-                            disabled={saving}
-                          />
-                        )}
-                        <div className="err" data-e={`f_${field.id}`}></div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {section.groups && section.groups.map((group, gi) => (
-                  <div key={gi}>
-                    <h3>{group.title}</h3>
-                    <div className="grid">
-                      {group.fields.map(field => (
+                    {section.fields.map(field => {
+                      const error = fieldErrors[field.id];
+                      const fieldId = `f_${field.id}`;
+                      return (
                         <div key={field.id} className={`fld${field.type === "textarea" ? " wide" : ""}`}>
-                          <label htmlFor={`f_${field.id}`}>
+                          <label htmlFor={fieldId}>
                             {field.label} {field.required && <span className="req">*</span>}
                           </label>
                           {field.type === "select" && (
                             <select
-                              id={`f_${field.id}`}
+                              id={fieldId}
                               value={formData[field.id] || ""}
                               onChange={e => handleChange(field.id, e.target.value)}
                               required={field.required}
                               disabled={saving}
+                              aria-invalid={!!error}
                             >
                               <option value="">Select</option>
                               {field.options?.map(opt => (
@@ -531,19 +482,95 @@ export default function ProfileView() {
                               ))}
                             </select>
                           )}
-                          {field.type !== "select" && (
+                          {field.type === "textarea" && (
+                            <textarea
+                              id={fieldId}
+                              value={formData[field.id] || ""}
+                              onChange={e => handleChange(field.id, e.target.value)}
+                              rows={3}
+                              required={field.required}
+                              disabled={saving}
+                              placeholder={field.id === "vac" ? "Vaccine names (one per line, up to 200 words)" : ""}
+                              aria-invalid={!!error}
+                            />
+                          )}
+                          {field.type !== "select" && field.type !== "textarea" && field.type !== "file" && (
                             <input
                               type={field.type}
-                              id={`f_${field.id}`}
+                              id={fieldId}
                               value={formData[field.id] || ""}
                               onChange={e => handleChange(field.id, e.target.value)}
                               required={field.required}
                               disabled={saving}
+                              max={field.type === "date" ? new Date().toISOString().split("T")[0] : field.type === "number" ? "500" : undefined}
+                              min={field.type === "number" ? "1" : undefined}
+                              step={field.type === "number" ? "0.1" : undefined}
+                              accept={field.accept}
+                              aria-invalid={!!error}
                             />
                           )}
-                          <div className="err" data-e={`f_${field.id}`}></div>
+                          {field.type === "file" && (
+                            <input
+                              type="file"
+                              id={fieldId}
+                              accept={field.accept}
+                              onChange={e => {
+                                const file = e.target.files?.[0];
+                                if (file) handleChange(field.id, file);
+                              }}
+                              disabled={saving}
+                              aria-invalid={!!error}
+                            />
+                          )}
+                          <div className="err" data-e={fieldId}>{error}</div>
                         </div>
-                      ))}
+                      );
+                    })}
+                  </div>
+                )}
+
+                {section.groups && section.groups.map((group, gi) => (
+                  <div key={gi}>
+                    <h3>{group.title}</h3>
+                    <div className="grid">
+                      {group.fields.map(field => {
+                        const error = fieldErrors[field.id];
+                        const fieldId = `f_${field.id}`;
+                        return (
+                          <div key={field.id} className={`fld${field.type === "textarea" ? " wide" : ""}`}>
+                            <label htmlFor={fieldId}>
+                              {field.label} {field.required && <span className="req">*</span>}
+                            </label>
+                            {field.type === "select" && (
+                              <select
+                                id={fieldId}
+                                value={formData[field.id] || ""}
+                                onChange={e => handleChange(field.id, e.target.value)}
+                                required={field.required}
+                                disabled={saving}
+                                aria-invalid={!!error}
+                              >
+                                <option value="">Select</option>
+                                {field.options?.map(opt => (
+                                  <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                              </select>
+                            )}
+                            {field.type !== "select" && (
+                              <input
+                                type={field.type}
+                                id={fieldId}
+                                value={formData[field.id] || ""}
+                                onChange={e => handleChange(field.id, e.target.value)}
+                                required={field.required}
+                                disabled={saving}
+                                aria-invalid={!!error}
+                              />
+                            )}
+                            <div className="err" data-e={fieldId}>{error}</div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -559,7 +586,9 @@ export default function ProfileView() {
                           onChange={handleVacChange}
                           rows={6}
                           disabled={saving}
+                          aria-invalid={!!fieldErrors.vaccinations}
                         />
+                        <div className="err" data-e="f_vac">{fieldErrors.vaccinations}</div>
                       </div>
                     </div>
                     <div className="hint" id="wc" style={{ color: vacWords > 200 ? "var(--danger)" : "" }}>
@@ -582,60 +611,68 @@ export default function ProfileView() {
                               </button>
                             </div>
                             <div className="grid">
-                              {rep.fields.map(field => (
-                                <div key={field.id} className={`fld${field.type === "textarea" ? " wide" : ""}`}>
-                                  <label htmlFor={`f_${rep.key}_${row.__uid || idx}_${field.id}`}>
-                                    {field.label} {field.required && <span className="req">*</span>}
-                                  </label>
-                                  {field.type === "select" && (
-                                    <select
-                                      id={`f_${rep.key}_${row.__uid || idx}_${field.id}`}
-                                      value={row[field.id] || ""}
-                                      onChange={e => handleRepeaterChange(rep.key, idx, field.id, e.target.value)}
-                                      required={field.required}
-                                      disabled={saving}
-                                    >
-                                      <option value="">Select</option>
-                                      {field.options?.map(opt => (
-                                        <option key={opt} value={opt}>{opt}</option>
-                                      ))}
-                                    </select>
-                                  )}
-                                  {field.type === "textarea" && (
-                                    <textarea
-                                      id={`f_${rep.key}_${row.__uid || idx}_${field.id}`}
-                                      value={row[field.id] || ""}
-                                      onChange={e => handleRepeaterChange(rep.key, idx, field.id, e.target.value)}
-                                      rows={3}
-                                      required={field.required}
-                                      disabled={saving}
-                                    />
-                                  )}
-                                  {field.type !== "select" && field.type !== "textarea" && field.type !== "file" && (
-                                    <input
-                                      type={field.type}
-                                      id={`f_${rep.key}_${row.__uid || idx}_${field.id}`}
-                                      value={row[field.id] || ""}
-                                      onChange={e => handleRepeaterChange(rep.key, idx, field.id, e.target.value)}
-                                      required={field.required}
-                                      disabled={saving}
-                                    />
-                                  )}
-                                  {field.type === "file" && (
-                                    <input
-                                      type="file"
-                                      id={`f_${rep.key}_${row.__uid || idx}_${field.id}`}
-                                      accept={field.accept}
-                                      onChange={e => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleRepeaterChange(rep.key, idx, field.id, file);
-                                      }}
-                                      disabled={saving}
-                                    />
-                                  )}
-                                  <div className="err" data-e={`f_${rep.key}_${row.__uid || idx}_${field.id}`}></div>
-                                </div>
-                              ))}
+                              {rep.fields.map(field => {
+                                const error = fieldErrors[`${rep.key}_${idx}_${field.id}`];
+                                const fieldId = `f_${rep.key}_${row.__uid || idx}_${field.id}`;
+                                return (
+                                  <div key={field.id} className={`fld${field.type === "textarea" ? " wide" : ""}`}>
+                                    <label htmlFor={fieldId}>
+                                      {field.label} {field.required && <span className="req">*</span>}
+                                    </label>
+                                    {field.type === "select" && (
+                                      <select
+                                        id={fieldId}
+                                        value={row[field.id] || ""}
+                                        onChange={e => handleRepeaterChange(rep.key, idx, field.id, e.target.value)}
+                                        required={field.required}
+                                        disabled={saving}
+                                        aria-invalid={!!error}
+                                      >
+                                        <option value="">Select</option>
+                                        {field.options?.map(opt => (
+                                          <option key={opt} value={opt}>{opt}</option>
+                                        ))}
+                                      </select>
+                                    )}
+                                    {field.type === "textarea" && (
+                                      <textarea
+                                        id={fieldId}
+                                        value={row[field.id] || ""}
+                                        onChange={e => handleRepeaterChange(rep.key, idx, field.id, e.target.value)}
+                                        rows={3}
+                                        required={field.required}
+                                        disabled={saving}
+                                        aria-invalid={!!error}
+                                      />
+                                    )}
+                                    {field.type !== "select" && field.type !== "textarea" && field.type !== "file" && (
+                                      <input
+                                        type={field.type}
+                                        id={fieldId}
+                                        value={row[field.id] || ""}
+                                        onChange={e => handleRepeaterChange(rep.key, idx, field.id, e.target.value)}
+                                        required={field.required}
+                                        disabled={saving}
+                                        aria-invalid={!!error}
+                                      />
+                                    )}
+                                    {field.type === "file" && (
+                                      <input
+                                        type="file"
+                                        id={fieldId}
+                                        accept={field.accept}
+                                        onChange={e => {
+                                          const file = e.target.files?.[0];
+                                          if (file) handleRepeaterChange(rep.key, idx, field.id, file);
+                                        }}
+                                        disabled={saving}
+                                        aria-invalid={!!error}
+                                      />
+                                    )}
+                                    <div className="err" data-e={fieldId}>{error}</div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         ))}
