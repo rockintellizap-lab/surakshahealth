@@ -159,6 +159,7 @@ export default function ProfileView() {
   const { setView } = useView();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
   const [msg, setMsg] = useState({ text: "", hidden: true, error: false });
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [repeaters, setRepeaters] = useState<Record<string, any[]>>({
@@ -374,12 +375,28 @@ export default function ProfileView() {
       };
 
       await saveProfile(user!.uid, saveData);
+      setSaveStatus("success");
       setMsg({ text: "Profile saved successfully!", hidden: false, error: false });
     } catch (err) {
+      setSaveStatus("error");
       setMsg({ text: "Failed to save profile. Please try again.", hidden: false, error: true });
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleGoToStatus = () => {
+    setSaveStatus("idle");
+    setView("status");
+  };
+
+  const handleGoToQR = () => {
+    setSaveStatus("idle");
+    setView("qr");
+  };
+
+  const handleEditProfile = () => {
+    setSaveStatus("idle");
   };
 
   const handleLogout = async () => {
@@ -398,6 +415,89 @@ export default function ProfileView() {
         </div>
         <div style={{ padding: "40px", textAlign: "center" }}>
           Loading profile...
+        </div>
+      </section>
+    );
+  }
+
+  // Show success/approval flow after save
+  if (saveStatus === "success") {
+    return (
+      <section id="profile" className="pf">
+        <div className="side">
+          <div className="who">
+            <small>Signed in as</small>
+            <b>{user?.email}</b>
+            <button type="button" className="link" onClick={handleLogout}>
+              Sign out
+            </button>
+          </div>
+        </div>
+        <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center", padding: "40px 20px" }}>
+          <div style={{ 
+            width: "80px", height: "80px", borderRadius: "50%", 
+            background: "var(--green)", color: "white", 
+            display: "flex", alignItems: "center", justifyContent: "center", 
+            fontSize: "36px", margin: "0 auto 24px" 
+          }}>
+            ✓
+          </div>
+          <h1 style={{ margin: "0 0 12px", fontSize: "28px", color: "var(--navy)" }}>
+            Profile Submitted Successfully
+          </h1>
+          <p style={{ color: "var(--muted)", marginBottom: "24px", fontSize: "16px", lineHeight: 1.6 }}>
+            Your emergency profile has been saved and is now <strong>pending admin approval</strong>.
+            Once verified, verified ER staff will be able to access your profile via your QR code or emergency link.
+          </p>
+          
+          <div className="card" style={{ 
+            textAlign: "left", marginBottom: "24px", 
+            background: "var(--saffron-l)", borderColor: "var(--saffron)",
+            borderLeftWidth: "6px"
+          }}>
+            <div style={{ padding: "20px" }}>
+              <h3 style={{ margin: "0 0 12px", color: "var(--navy)", fontSize: "16px" }}>
+                ⏳ What happens next?
+              </h3>
+              <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: 2, color: "var(--text)" }}>
+                <li>Our admin team will review your profile within 24-48 hours</li>
+                <li>You'll receive an email notification once approved</li>
+                <li>After approval, your QR code and emergency link will become active</li>
+                <li>You can still edit your profile while it's pending review</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            <button 
+              type="button" 
+              className="btn" 
+              onClick={handleGoToStatus}
+              style={{ background: "var(--navy)", minWidth: "180px" }}
+            >
+              View Status Page
+            </button>
+            <button 
+              type="button" 
+              className="btn" 
+              onClick={handleGoToQR}
+              style={{ background: "var(--primary)", minWidth: "180px" }}
+            >
+              View QR Code
+            </button>
+            <button 
+              type="button" 
+              className="btn" 
+              onClick={handleEditProfile}
+              style={{ background: "var(--muted)", minWidth: "180px" }}
+            >
+              Edit Profile
+            </button>
+          </div>
+
+          <p style={{ marginTop: "24px", fontSize: "13px", color: "var(--muted)" }}>
+            Your profile is saved securely. You can continue editing until it's approved.
+          </p>
         </div>
       </section>
     );
