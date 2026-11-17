@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useView } from "@/context/ViewContext";
 import { getProfile } from "@/lib/profileService";
@@ -16,7 +16,7 @@ export default function QRView() {
   const [copied, setCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -31,7 +31,7 @@ export default function QRView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {

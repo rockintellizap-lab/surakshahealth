@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useView } from "@/context/ViewContext";
 import { getProfile, saveProfile } from "@/lib/profileService";
@@ -173,13 +173,7 @@ export default function ProfileView() {
   const fileInputsRef = useRef<Record<string, HTMLInputElement | null>>({});
   const uidCounter = useRef(0);
 
-  useEffect(() => {
-    if (user) {
-      loadProfile();
-    }
-  }, [user]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -216,7 +210,13 @@ export default function ProfileView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+    }
+  }, [user, loadProfile]);
 
   const handleChange = (key: string, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }));

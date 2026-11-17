@@ -20,7 +20,7 @@ function HomeContent() {
     if (!authLoading && !user && view !== "auth") {
       setView("auth");
     }
-  }, [user, authLoading, view, setView]);
+  }, [user, authLoading]); // Only depend on user/authLoading, not view/setView
 
   if (authLoading) {
     return (

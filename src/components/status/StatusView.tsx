@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useView } from "@/context/ViewContext";
 import { getProfile } from "@/lib/profileService";
@@ -20,7 +20,7 @@ export default function StatusView() {
   const [copied, setCopied] = useState(false);
   const [emergencyMode, setEmergencyMode] = useState(false);
 
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -31,7 +31,7 @@ export default function StatusView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
