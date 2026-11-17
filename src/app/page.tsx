@@ -40,7 +40,7 @@ function HomeContent() {
       <Header />
       <Nav />
 
-      <main id="main" className={`flex-1 ${view === "profile" ? "profile-view" : ""}`}>
+      <main id="main" className={`flex-1 ${view === "profile" ? "profile-view" : view === "status" ? "status-view" : view === "qr" ? "qr-view" : ""}`}>
         {view === "auth" && (
           <>
             <section className="intro">
