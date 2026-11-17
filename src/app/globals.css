@@ -191,3 +191,8 @@ main.single{grid-template-columns:1fr;max-width:860px}
 @media (max-width:900px){.qrp{grid-template-columns:1fr}.hc-body{flex-direction:column-reverse;align-items:flex-start}.pill{margin-left:0}}
 @media print{body *{visibility:hidden}#hcard,#hcard *{visibility:visible}#hcard{position:absolute;left:0;top:0;width:100%;box-shadow:none}}
 
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255, 153, 51, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 153, 51, 0.2); }
+}
+

@@ -420,7 +420,7 @@ export default function ProfileView() {
     );
   }
 
-  // Show success/approval flow after save
+// Show success/approval flow after save
   if (saveStatus === "success") {
     return (
       <section id="profile" className="pf">
@@ -433,219 +433,130 @@ export default function ProfileView() {
             </button>
           </div>
         </div>
-        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-          {/* Success Header */}
-          <div className="card" style={{ marginBottom: "24px" }}>
-            <div style={{ 
-              textAlign: "center", 
-              padding: "48px 32px",
-              background: "linear-gradient(135deg, rgba(19, 136, 8, 0.08) 0%, rgba(19, 136, 8, 0.02) 100%)",
-              borderTop: "4px solid var(--green)",
-              borderRadius: "10px 10px 0 0",
-            }}>
+        <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+          {/* Single Row Layout: Success Header | 3-Step Progress | Actions */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "1fr auto 1fr",
+            gap: "32px",
+            alignItems: "center",
+            marginBottom: "24px"
+          }}>
+            {/* Left: Success Header */}
+            <div style={{ textAlign: "left" }}>
               <div style={{ 
-                width: "88px", height: "88px", borderRadius: "50%", 
-                background: "var(--green)", color: "white", 
-                display: "flex", alignItems: "center", justifyContent: "center", 
-                fontSize: "40px", margin: "0 auto 24px",
-                boxShadow: "0 8px 24px rgba(19, 136, 8, 0.3)"
+                display: "flex", 
+                alignItems: "center", 
+                gap: "16px",
+                marginBottom: "12px"
               }}>
-                ✓
+                <div style={{ 
+                  width: "56px", height: "56px", borderRadius: "50%", 
+                  background: "var(--green)", color: "white", 
+                  display: "flex", alignItems: "center", justifyContent: "center", 
+                  fontSize: "28px", flexShrink: 0,
+                  boxShadow: "0 4px 16px rgba(19, 136, 8, 0.3)"
+                }}>
+                  ✓
+                </div>
+                <div>
+                  <h1 style={{ margin: "0 0 4px", fontSize: "22px", color: "var(--navy)", fontWeight: 700 }}>
+                    Profile Submitted Successfully
+                  </h1>
+                </div>
               </div>
-              <h1 style={{ margin: "0 0 12px", fontSize: "32px", color: "var(--navy)", fontWeight: 700 }}>
-                Profile Submitted Successfully
-              </h1>
-              <p style={{ color: "var(--muted)", marginBottom: "8px", fontSize: "17px", lineHeight: 1.6, maxWidth: "480px", marginLeft: "auto", marginRight: "auto" }}>
+              <p style={{ color: "var(--muted)", margin: 0, fontSize: "14px", lineHeight: 1.6, maxWidth: "320px" }}>
                 Your emergency profile has been saved and is now <strong>pending admin approval</strong>.
               </p>
-              <p style={{ color: "var(--muted)", marginBottom: "0", fontSize: "15px", lineHeight: 1.6, maxWidth: "480px", marginLeft: "auto", marginRight: "auto" }}>
+              <p style={{ color: "var(--muted)", margin: "4px 0 0", fontSize: "13px", lineHeight: 1.5, maxWidth: "320px" }}>
                 Once verified, ER staff can access your profile via QR code or emergency link.
               </p>
             </div>
-          </div>
 
-          {/* 3-Step Progress Flow */}
-          <div className="card" style={{ marginBottom: "24px" }}>
-            <div className="sh" style={{ background: "var(--saffron-l)", borderBottom: "2px solid var(--saffron)" }}>
-              <h2 style={{ margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "22px" }}>📋</span>
-                Submission Progress
-              </h2>
-            </div>
-            <div className="sb" style={{ padding: "28px 24px" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-                {/* Step 1: Profile Creation - Completed */}
+            {/* Middle: 3-Step Horizontal Progress */}
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "8px",
+              padding: "16px 20px",
+              background: "var(--bg)",
+              borderRadius: "12px",
+              border: "1px solid var(--line)"
+            }}>
+              {/* Step 1 */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
                 <div style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "20px",
-                  padding: "20px 0",
-                  position: "relative"
+                  width: "36px", height: "36px", borderRadius: "50%", 
+                  background: "var(--green)", color: "white", 
+                  display: "flex", alignItems: "center", justifyContent: "center", 
+                  fontWeight: 700, fontSize: "16px",
+                  boxShadow: "0 0 0 3px rgba(19, 136, 8, 0.2)"
                 }}>
-                  {/* Vertical line connector */}
-                  <div style={{ 
-                    position: "absolute", 
-                    left: "19px", 
-                    top: "60px", 
-                    bottom: "0", 
-                    width: "2px", 
-                    background: "var(--green)",
-                    zIndex: 0
-                  }} />
-                  <div style={{ 
-                    flex: "0 0 40px", 
-                    width: "40px", 
-                    height: "40px", 
-                    borderRadius: "50%", 
-                    background: "var(--green)", 
-                    color: "white", 
-                    display: "flex", 
-                    alignItems: "center", 
-                    justifyContent: "center", 
-                    fontWeight: 700, 
-                    fontSize: "18px",
-                    boxShadow: "0 0 0 4px rgba(19, 136, 8, 0.2)",
-                    zIndex: 1
-                  }}>
-                    ✓
-                  </div>
-                  <div style={{ flex: 1, zIndex: 1 }}>
-                    <strong style={{ color: "var(--navy)", display: "block", marginBottom: "4px", fontSize: "16px" }}>
-                      Profile Creation
-                    </strong>
-                    <span style={{ color: "var(--green)", fontSize: "13px", fontWeight: 600 }}>
-                      ✓ Completed
-                    </span>
-                  </div>
+                  ✓
                 </div>
-
-                {/* Step 2: Verification/Processing - Completed */}
-                <div style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "20px",
-                  padding: "20px 0",
-                  position: "relative"
-                }}>
-                  <div style={{ 
-                    position: "absolute", 
-                    left: "19px", 
-                    top: "60px", 
-                    bottom: "0", 
-                    width: "2px", 
-                    background: "var(--green)",
-                    zIndex: 0
-                  }} />
-                  <div style={{ 
-                    flex: "0 0 40px", 
-                    width: "40px", 
-                    height: "40px", 
-                    borderRadius: "50%", 
-                    background: "var(--green)", 
-                    color: "white", 
-                    display: "flex", 
-                    alignItems: "center", 
-                    justifyContent: "center", 
-                    fontWeight: 700, 
-                    fontSize: "18px",
-                    boxShadow: "0 0 0 4px rgba(19, 136, 8, 0.2)",
-                    zIndex: 1
-                  }}>
-                    ✓
-                  </div>
-                  <div style={{ flex: 1, zIndex: 1 }}>
-                    <strong style={{ color: "var(--navy)", display: "block", marginBottom: "4px", fontSize: "16px" }}>
-                      Data Verification
-                    </strong>
-                    <span style={{ color: "var(--green)", fontSize: "13px", fontWeight: 600 }}>
-                      ✓ Completed
-                    </span>
-                  </div>
-                </div>
-
-                {/* Step 3: Admin Approval - Current/Pending */}
-                <div style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "20px",
-                  padding: "20px 0",
-                  position: "relative"
-                }}>
-                  <div style={{ 
-                    position: "absolute", 
-                    left: "19px", 
-                    top: "60px", 
-                    bottom: "0", 
-                    width: "2px", 
-                    background: "var(--saffron)",
-                    zIndex: 0
-                  }} />
-                  <div style={{ 
-                    flex: "0 0 40px", 
-                    width: "40px", 
-                    height: "40px", 
-                    borderRadius: "50%", 
-                    background: "var(--saffron)", 
-                    color: "white", 
-                    display: "flex", 
-                    alignItems: "center", 
-                    justifyContent: "center", 
-                    fontWeight: 700, 
-                    fontSize: "16px",
-                    boxShadow: "0 0 0 4px rgba(255, 153, 51, 0.4)",
-                    animation: "pulse 2s infinite",
-                    zIndex: 1
-                  }}>
-                    3
-                  </div>
-                  <div style={{ flex: 1, zIndex: 1 }}>
-                    <strong style={{ color: "var(--navy)", display: "block", marginBottom: "4px", fontSize: "16px" }}>
-                      Admin Approval
-                    </strong>
-                    <span style={{ color: "var(--saffron)", fontSize: "13px", fontWeight: 600 }}>
-                      ⏳ Pending — under review
-                    </span>
-                    <p style={{ margin: "8px 0 0", color: "var(--muted)", fontSize: "13px", lineHeight: 1.5 }}>
-                      Our team will review within 24&ndash;48 hours. You&apos;ll get an email once approved.
-                    </p>
-                  </div>
-                </div>
+                <span style={{ fontSize: "11px", color: "var(--navy)", fontWeight: 600, whiteSpace: "nowrap" }}>
+                  Profile<br/>Creation
+                </span>
               </div>
               
-              {/* Style for pulse animation */}
-              <style jsx>{`
-                @keyframes pulse {
-                  0%, 100% { box-shadow: 0 0 0 4px rgba(255, 153, 51, 0.4); }
-                  50% { box-shadow: 0 0 0 8px rgba(255, 153, 51, 0.2); }
-                }
-              `}</style>
-            </div>
-          </div>
-
-          {/* Action Buttons - Bottom aligned */}
-          <div className="card" style={{ 
-            background: "linear-gradient(135deg, rgba(15, 33, 89, 0.05) 0%, transparent 100%)", 
-            borderTop: "4px solid var(--navy)" 
-          }}>
-            <div className="sb" style={{ padding: "32px 24px", textAlign: "center" }}>
-              <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap", marginBottom: "16px" }}>
-                <button 
-                  type="button" 
-                  className="btn" 
-                  onClick={handleGoToStatus}
-                  style={{ background: "var(--navy)", minWidth: "200px", padding: "16px 32px", fontSize: "16px", fontWeight: 600 }}
-                >
-                  View Status Page
-                </button>
-                <button 
-                  type="button" 
-                  className="btn" 
-                  onClick={handleGoToQR}
-                  style={{ background: "var(--primary)", minWidth: "200px", padding: "16px 32px", fontSize: "16px", fontWeight: 600 }}
-                >
-                  View QR Code
-                </button>
+              {/* Connector */}
+              <div style={{ width: "40px", height: "2px", background: "var(--green)" }} />
+              
+              {/* Step 2 */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+                <div style={{ 
+                  width: "36px", height: "36px", borderRadius: "50%", 
+                  background: "var(--green)", color: "white", 
+                  display: "flex", alignItems: "center", justifyContent: "center", 
+                  fontWeight: 700, fontSize: "16px",
+                  boxShadow: "0 0 0 3px rgba(19, 136, 8, 0.2)"
+                }}>
+                  ✓
+                </div>
+                <span style={{ fontSize: "11px", color: "var(--navy)", fontWeight: 600, whiteSpace: "nowrap", textAlign: "center" }}>
+                  Data<br/>Verification
+                </span>
               </div>
+              
+              {/* Connector */}
+              <div style={{ width: "40px", height: "2px", background: "var(--saffron)" }} />
+              
+              {/* Step 3 - Current */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+                <div style={{ 
+                  width: "36px", height: "36px", borderRadius: "50%", 
+                  background: "var(--saffron)", color: "white", 
+                  display: "flex", alignItems: "center", justifyContent: "center", 
+                  fontWeight: 700, fontSize: "14px",
+                  boxShadow: "0 0 0 3px rgba(255, 153, 51, 0.4)",
+                  animation: "pulse 2s infinite"
+                }}>
+                  3
+                </div>
+                <span style={{ fontSize: "11px", color: "var(--saffron)", fontWeight: 600, whiteSpace: "nowrap", textAlign: "center" }}>
+                  Admin<br/>Approval
+                </span>
+              </div>
+            </div>
+
+            {/* Right: Action Buttons */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "10px", minWidth: "200px" }}>
+              <button 
+                type="button" 
+                className="btn" 
+                onClick={handleGoToStatus}
+                style={{ background: "var(--navy)", padding: "12px 24px", fontSize: "14px", fontWeight: 600, whiteSpace: "nowrap" }}
+              >
+                View Status Page
+              </button>
+              <button 
+                type="button" 
+                className="btn" 
+                onClick={handleGoToQR}
+                style={{ background: "var(--primary)", padding: "12px 24px", fontSize: "14px", fontWeight: 600, whiteSpace: "nowrap" }}
+              >
+                View QR Code
+              </button>
               <button 
                 type="button" 
                 className="btn" 
@@ -655,19 +566,21 @@ export default function ProfileView() {
                   color: "var(--navy)", 
                   border: "2px solid var(--navy)", 
                   boxShadow: "none", 
-                  minWidth: "200px", 
-                  padding: "14px 30px", 
-                  fontSize: "15px",
-                  fontWeight: 600
+                  padding: "10px 22px", 
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap"
                 }}
               >
                 Edit Profile
               </button>
-              <p style={{ margin: "16px 0 0", fontSize: "13px", color: "var(--muted)" }}>
-                Your profile is saved securely under DPDP Act, 2023. All data encrypted.
-              </p>
             </div>
           </div>
+
+          {/* Footer note */}
+          <p style={{ textAlign: "center", margin: "16px 0 0", fontSize: "12px", color: "var(--muted)" }}>
+            Your profile is saved securely under DPDP Act, 2023. All data encrypted.
+          </p>
         </div>
       </section>
     );
