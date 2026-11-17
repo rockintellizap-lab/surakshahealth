@@ -22,6 +22,9 @@ export default function ProfileView() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState({ text: "", hidden: true, error: false });
+  const [medications, setMedications] = useState<Array<{id: string, name: string, dosage: string, frequency: string}>>([]);
+  const [conditions, setConditions] = useState<Array<{id: string, name: string, details: string}>>([]);
+  const [documents, setDocuments] = useState<Array<{id: string, name: string, type: string, url: string}>>([]);
 
   useEffect(() => {
     if (user) {
@@ -70,6 +73,30 @@ export default function ProfileView() {
   const handleLogout = async () => {
     await logout();
     setView("auth");
+  };
+
+  const addMedication = () => {
+    setMedications([...medications, { id: Date.now().toString(), name: "", dosage: "", frequency: "" }]);
+  };
+
+  const removeMedication = (id: string) => {
+    setMedications(medications.filter(m => m.id !== id));
+  };
+
+  const addCondition = () => {
+    setConditions([...conditions, { id: Date.now().toString(), name: "", details: "" }]);
+  };
+
+  const removeCondition = (id: string) => {
+    setConditions(conditions.filter(c => c.id !== id));
+  };
+
+  const addDocument = () => {
+    setDocuments([...documents, { id: Date.now().toString(), name: "", type: "", url: "" }]);
+  };
+
+  const removeDocument = (id: string) => {
+    setDocuments(documents.filter(d => d.id !== id));
   };
 
   if (loading) {
@@ -204,6 +231,150 @@ export default function ProfileView() {
               maxLength={4}
               disabled={saving}
             />
+          </div>
+        </div>
+
+        <div id="secs">
+          <div className="sec">
+            <div className="rh">
+              <h3>Medications</h3>
+              <button type="button" className="add" onClick={addMedication} disabled={saving}>
+                + Add medication
+              </button>
+            </div>
+            {medications.map((med, idx) => (
+              <div key={med.id} className="item">
+                <div className="grid" style={{ marginTop: "12px" }}>
+                  <div>
+                    <label>Medication name <span className="req">*</span></label>
+                    <input
+                      value={med.name}
+                      onChange={(e) => setMedications(medications.map(m => m.id === med.id ? { ...m, name: e.target.value } : m))}
+                      placeholder="e.g., Metoprolol"
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <label>Dosage</label>
+                    <input
+                      value={med.dosage}
+                      onChange={(e) => setMedications(medications.map(m => m.id === med.id ? { ...m, dosage: e.target.value } : m))}
+                      placeholder="e.g., 50 mg"
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <label>Frequency</label>
+                    <input
+                      value={med.frequency}
+                      onChange={(e) => setMedications(medications.map(m => m.id === med.id ? { ...m, frequency: e.target.value } : m))}
+                      placeholder="e.g., Once daily"
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+                <button type="button" className="link" onClick={() => removeMedication(med.id)} disabled={saving} style={{ marginTop: "8px" }}>
+                  Remove
+                </button>
+              </div>
+            ))}
+            {medications.length === 0 && (
+              <p className="sub" style={{ marginTop: "12px" }}>No medications added yet.</p>
+            )}
+          </div>
+
+          <div className="sec">
+            <div className="rh">
+              <h3>Medical Conditions</h3>
+              <button type="button" className="add" onClick={addCondition} disabled={saving}>
+                + Add condition
+              </button>
+            </div>
+            {conditions.map((cond) => (
+              <div key={cond.id} className="item">
+                <div className="grid" style={{ marginTop: "12px" }}>
+                  <div className="wide">
+                    <label>Condition name <span className="req">*</span></label>
+                    <input
+                      value={cond.name}
+                      onChange={(e) => setConditions(conditions.map(c => c.id === cond.id ? { ...c, name: e.target.value } : c))}
+                      placeholder="e.g., Hypertension, Type 2 Diabetes"
+                      disabled={saving}
+                    />
+                  </div>
+                  <div className="wide">
+                    <label>Details</label>
+                    <textarea
+                      value={cond.details}
+                      onChange={(e) => setConditions(conditions.map(c => c.id === cond.id ? { ...c, details: e.target.value } : c))}
+                      placeholder="Diagnosis date, severity, treating doctor, etc."
+                      rows={2}
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+                <button type="button" className="link" onClick={() => removeCondition(cond.id)} disabled={saving} style={{ marginTop: "8px" }}>
+                  Remove
+                </button>
+              </div>
+            ))}
+            {conditions.length === 0 && (
+              <p className="sub" style={{ marginTop: "12px" }}>No conditions added yet.</p>
+            )}
+          </div>
+
+          <div className="sec">
+            <div className="rh">
+              <h3>Documents</h3>
+              <button type="button" className="add" onClick={addDocument} disabled={saving}>
+                + Add document
+              </button>
+            </div>
+            {documents.map((doc) => (
+              <div key={doc.id} className="item">
+                <div className="grid" style={{ marginTop: "12px" }}>
+                  <div>
+                    <label>Document name <span className="req">*</span></label>
+                    <input
+                      value={doc.name}
+                      onChange={(e) => setDocuments(documents.map(d => d.id === doc.id ? { ...d, name: e.target.value } : d))}
+                      placeholder="e.g., ECG Report, Discharge Summary"
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <label>Type</label>
+                    <select
+                      value={doc.type}
+                      onChange={(e) => setDocuments(documents.map(d => d.id === doc.id ? { ...d, type: e.target.value } : d))}
+                      disabled={saving}
+                    >
+                      <option value="">Select type</option>
+                      <option value="lab">Lab Report</option>
+                      <option value="imaging">Imaging</option>
+                      <option value="prescription">Prescription</option>
+                      <option value="discharge">Discharge Summary</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div className="wide">
+                    <label>URL / Reference</label>
+                    <input
+                      value={doc.url}
+                      onChange={(e) => setDocuments(documents.map(d => d.id === doc.id ? { ...d, url: e.target.value } : d))}
+                      placeholder="Link to document or file reference"
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+                <button type="button" className="link" onClick={() => removeDocument(doc.id)} disabled={saving} style={{ marginTop: "8px" }}>
+                  Remove
+                </button>
+              </div>
+            ))}
+            {documents.length === 0 && (
+              <p className="sub" style={{ marginTop: "12px" }}>No documents added yet.</p>
+            )}
           </div>
         </div>
 
