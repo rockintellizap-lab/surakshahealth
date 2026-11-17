@@ -580,9 +580,18 @@ export default function ProfileView() {
                   type="button" 
                   className="btn" 
                   onClick={handleGoToQR}
-                  style={{ background: "var(--primary)", padding: "14px 28px", fontSize: "15px", fontWeight: 600 }}
+                  disabled
+                  style={{ 
+                    background: "var(--line)", 
+                    color: "var(--muted)", 
+                    padding: "14px 28px", 
+                    fontSize: "15px", 
+                    fontWeight: 600,
+                    cursor: "not-allowed"
+                  }}
+                  title="QR code available after admin approval"
                 >
-                  View QR Code
+                  View QR Code (Pending Approval)
                 </button>
               </div>
               <button 
