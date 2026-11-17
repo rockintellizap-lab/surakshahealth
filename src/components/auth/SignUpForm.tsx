@@ -52,9 +52,9 @@ export default function SignUpForm({ active }: { active: boolean }) {
       setSubmitting(true);
       setMsg({ text: "", hidden: true, error: false });
       try {
-        await signUp(email, password);
+        const redirectPath = await signUp(email, password);
         setMsg({ text: "Account created successfully!", hidden: false, error: false });
-        setView("profile");
+        setView(redirectPath as any);
       } catch (err: any) {
         const message = err.code === "auth/email-already-in-use"
           ? "An account with this email already exists."

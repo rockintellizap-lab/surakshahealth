@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost:3000", "http://192.168.29.199:3000", "https://funny-quokka-fb5b8b.netlify.app"],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "User-Agent", "x-goog-resumable"]
+  }
+]

@@ -38,9 +38,9 @@ export default function SignInForm({ active }: { active: boolean }) {
       setSubmitting(true);
       setMsg({ text: "", hidden: true, error: false });
       try {
-        await signIn(email, password);
+        const redirectPath = await signIn(email, password);
         setMsg({ text: "Signed in successfully!", hidden: false, error: false });
-        setView("profile");
+        setView(redirectPath as any);
       } catch (err: any) {
         const message = err.code === "auth/invalid-credential" 
           ? "Invalid email or password."

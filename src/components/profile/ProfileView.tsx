@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useView } from "@/context/ViewContext";
 import { getProfile, saveProfile } from "@/lib/profileService";
+import { uploadReportFile } from "@/lib/storage";
 import type { EmergencyProfileFormData } from "@/lib/profile";
 
 const BG = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"];
@@ -159,7 +160,6 @@ export default function ProfileView() {
   const { setView } = useView();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
   const [msg, setMsg] = useState({ text: "", hidden: true, error: false });
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [repeaters, setRepeaters] = useState<Record<string, any[]>>({
@@ -195,8 +195,32 @@ export default function ProfileView() {
         if (data.reports) {
           try {
             const parsed = JSON.parse(data.reports);
-            if (Array.isArray(parsed)) setRepeaters(prev => ({ ...prev, rpt: parsed }));
-          } catch {}
+            console.log("Raw reports from Firestore:", parsed);
+            if (Array.isArray(parsed)) {
+              // Normalize old data: ensure file_name exists for display
+              const normalized = parsed.map((r: any) => {
+                let fileName = r.file_name || r.name || "Report";
+                // If file is a Firebase Storage URL, extract filename from URL
+                if (r.file && typeof r.file === "string" && r.file.includes("firebasestorage.googleapis.com") && !r.file_name) {
+                  try {
+                    const urlParts = r.file.split("/");
+                    const lastPart = urlParts[urlParts.length - 1];
+                    const decoded = decodeURIComponent(lastPart);
+                    const namePart = decoded.split("_").slice(1).join("_");
+                    if (namePart) fileName = namePart;
+                  } catch {}
+                }
+                return {
+                  ...r,
+                  file_name: fileName,
+                };
+              });
+              console.log("Normalized reports:", normalized);
+              setRepeaters(prev => ({ ...prev, rpt: normalized }));
+            }
+          } catch (e) {
+            console.error("Failed to parse reports:", e);
+          }
         }
         if (data.vaccinations) {
           setVacWords(words(data.vaccinations));
@@ -230,7 +254,15 @@ export default function ProfileView() {
   const handleRepeaterChange = (repKey: string, index: number, fieldId: string, value: any) => {
     setRepeaters(prev => {
       const arr = [...prev[repKey]];
-      arr[index] = { ...arr[index], [fieldId]: value };
+      const newRow = { ...arr[index], [fieldId]: value };
+      // If clearing file input, also clear stored file (base64/URL) and file_name
+      if (value === "" && fieldId === "file") {
+        newRow.file = "";
+        newRow.file_name = "";
+        newRow.type = "";
+        newRow.size = 0;
+      }
+      arr[index] = newRow;
       return { ...prev, [repKey]: arr };
     });
     setFieldErrors(prev => {
@@ -360,6 +392,32 @@ export default function ProfileView() {
     setMsg({ text: "", hidden: true, error: false });
 
     try {
+      // Upload report files to Firebase Storage first
+      const uploadedReports: any[] = [];
+      for (const row of repeaters.rpt) {
+        console.log("Processing report row:", row);
+        if (row.file instanceof File) {
+          const uploaded = await uploadReportFile(user!.uid, row.file);
+          uploadedReports.push({
+            name: row.name || uploaded.name,
+            file: uploaded.url,
+            file_name: uploaded.name,
+            size: uploaded.size,
+            type: uploaded.type,
+          });
+        } else if (row.file && typeof row.file === "string" && row.file.startsWith("http")) {
+          // Already uploaded (from previous save)
+          uploadedReports.push({
+            name: row.name || row.file_name,
+            file: row.file,
+            file_name: row.file_name,
+            size: row.size,
+            type: row.type,
+          });
+        }
+      }
+      console.log("Uploaded reports to save:", uploadedReports);
+
       const saveData: EmergencyProfileFormData & Record<string, any> = {
         bloodGroup: formData.bg || "",
         dateOfBirth: formData.dob || "",
@@ -369,34 +427,23 @@ export default function ProfileView() {
         aadhaarLast4: formData.aadhaar?.slice(-4) || "",
         ...formData,
         medications: JSON.stringify(repeaters.med),
-        reports: JSON.stringify(repeaters.rpt),
+        reports: JSON.stringify(uploadedReports),
         vaccinations: formData.vaccinations || "",
         photo: photoPreview || "",
       };
 
       await saveProfile(user!.uid, saveData);
-      setSaveStatus("success");
-      setMsg({ text: "Profile saved successfully!", hidden: false, error: false });
+      setMsg({ text: "Profile saved successfully! Redirecting to application status...", hidden: false, error: false });
+      // Redirect to status page after short delay
+      setTimeout(() => {
+        setView("status");
+      }, 1500);
     } catch (err) {
-      setSaveStatus("error");
-      setMsg({ text: "Failed to save profile. Please try again.", hidden: false, error: true });
+      console.error("Save profile error:", err);
+      setMsg({ text: `Failed to save profile: ${err instanceof Error ? err.message : "Unknown error"}`, hidden: false, error: true });
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleGoToStatus = () => {
-    setSaveStatus("idle");
-    setView("status");
-  };
-
-  const handleGoToQR = () => {
-    setSaveStatus("idle");
-    setView("qr");
-  };
-
-  const handleEditProfile = () => {
-    setSaveStatus("idle");
   };
 
   const handleLogout = async () => {
@@ -415,207 +462,6 @@ export default function ProfileView() {
         </div>
         <div style={{ padding: "40px", textAlign: "center" }}>
           Loading profile...
-        </div>
-      </section>
-    );
-  }
-
-// Show success/approval flow after save
-  if (saveStatus === "success") {
-    return (
-      <section id="profile" className="pf">
-        <div className="side">
-          <div className="who">
-            <small>Signed in as</small>
-            <b>{user?.email}</b>
-            <button type="button" className="link" onClick={handleLogout}>
-              Sign out
-            </button>
-          </div>
-        </div>
-        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-          {/* Row 1: Success Header */}
-          <div className="card" style={{ marginBottom: "24px" }}>
-            <div style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              gap: "16px",
-              padding: "32px",
-              background: "linear-gradient(135deg, rgba(19, 136, 8, 0.08) 0%, rgba(19, 136, 8, 0.02) 100%)",
-              borderTop: "4px solid var(--green)",
-              borderRadius: "10px 10px 0 0",
-            }}>
-              <div style={{ 
-                width: "56px", height: "56px", borderRadius: "50%", 
-                background: "var(--green)", color: "white", 
-                display: "flex", alignItems: "center", justifyContent: "center", 
-                fontSize: "28px", flexShrink: 0,
-                boxShadow: "0 4px 16px rgba(19, 136, 8, 0.3)"
-              }}>
-                ✓
-              </div>
-              <div>
-                <h1 style={{ margin: "0 0 4px", fontSize: "24px", color: "var(--navy)", fontWeight: 700 }}>
-                  Profile Submitted Successfully
-                </h1>
-                <p style={{ color: "var(--muted)", margin: 0, fontSize: "14px", lineHeight: 1.6 }}>
-                  Your emergency profile has been saved and is now <strong>pending admin approval</strong>.
-                </p>
-                <p style={{ color: "var(--muted)", margin: "4px 0 0", fontSize: "13px", lineHeight: 1.5 }}>
-                  Once verified, ER staff can access your profile via QR code or emergency link.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Row 2: 3-Step Horizontal Progress Flow */}
-          <div className="card" style={{ marginBottom: "24px" }}>
-            <div className="sh" style={{ background: "var(--saffron-l)", borderBottom: "2px solid var(--saffron)" }}>
-              <h2 style={{ margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "20px" }}>📋</span>
-                Submission Progress
-              </h2>
-            </div>
-            <div className="sb" style={{ padding: "28px 24px" }}>
-              <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "8px",
-                flexWrap: "wrap",
-                justifyContent: "center"
-              }}>
-                {/* Step 1: Profile Creation */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                  <div style={{ 
-                    width: "40px", height: "40px", borderRadius: "50%", 
-                    background: "var(--green)", color: "white", 
-                    display: "flex", alignItems: "center", justifyContent: "center", 
-                    fontWeight: 700, fontSize: "18px",
-                    boxShadow: "0 0 0 3px rgba(19, 136, 8, 0.2)"
-                  }}>
-                    ✓
-                  </div>
-                  <span style={{ fontSize: "12px", color: "var(--navy)", fontWeight: 600, whiteSpace: "nowrap", textAlign: "center" }}>
-                    Profile Creation
-                  </span>
-                  <span style={{ fontSize: "11px", color: "var(--green)", fontWeight: 600 }}>
-                    ✓ Completed
-                  </span>
-                </div>
-                
-                {/* Connector */}
-                <div style={{ width: "32px", height: "2px", background: "var(--green)" }} />
-                
-                {/* Step 2: Data Verification */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                  <div style={{ 
-                    width: "40px", height: "40px", borderRadius: "50%", 
-                    background: "var(--green)", color: "white", 
-                    display: "flex", alignItems: "center", justifyContent: "center", 
-                    fontWeight: 700, fontSize: "18px",
-                    boxShadow: "0 0 0 3px rgba(19, 136, 8, 0.2)"
-                  }}>
-                    ✓
-                  </div>
-                  <span style={{ fontSize: "12px", color: "var(--navy)", fontWeight: 600, whiteSpace: "nowrap", textAlign: "center" }}>
-                    Data Verification
-                  </span>
-                  <span style={{ fontSize: "11px", color: "var(--green)", fontWeight: 600 }}>
-                    ✓ Completed
-                  </span>
-                </div>
-                
-                {/* Connector */}
-                <div style={{ width: "32px", height: "2px", background: "var(--saffron)" }} />
-                
-                {/* Step 3: Admin Approval - Current */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                  <div style={{ 
-                    width: "40px", height: "40px", borderRadius: "50%", 
-                    background: "var(--saffron)", color: "white", 
-                    display: "flex", alignItems: "center", justifyContent: "center", 
-                    fontWeight: 700, fontSize: "16px",
-                    boxShadow: "0 0 0 3px rgba(255, 153, 51, 0.4)",
-                    animation: "pulse 2s infinite"
-                  }}>
-                    3
-                  </div>
-                  <span style={{ fontSize: "12px", color: "var(--navy)", fontWeight: 600, whiteSpace: "nowrap", textAlign: "center" }}>
-                    Admin Approval
-                  </span>
-                  <span style={{ fontSize: "11px", color: "var(--saffron)", fontWeight: 600 }}>
-                    ⏳ Pending
-                  </span>
-                </div>
-              </div>
-              
-              <p style={{ margin: "16px 0 0", textAlign: "center", color: "var(--muted)", fontSize: "13px", lineHeight: 1.5 }}>
-                Our team will review within 24&ndash;48 hours. You&apos;ll get an email once approved.
-              </p>
-            </div>
-          </div>
-
-          {/* Row 3: Action Buttons */}
-          <div className="card" style={{ 
-            background: "linear-gradient(135deg, rgba(15, 33, 89, 0.05) 0%, transparent 100%)", 
-            borderTop: "4px solid var(--navy)" 
-          }}>
-            <div className="sb" style={{ padding: "28px 24px", textAlign: "center" }}>
-              <div style={{ 
-                display: "grid", 
-                gridTemplateColumns: "1fr 1fr", 
-                gap: "16px",
-                maxWidth: "420px",
-                margin: "0 auto 16px"
-              }}>
-                <button 
-                  type="button" 
-                  className="btn" 
-                  onClick={handleGoToStatus}
-                  style={{ background: "var(--navy)", padding: "14px 28px", fontSize: "15px", fontWeight: 600 }}
-                >
-                  View Status Page
-                </button>
-                <button 
-                  type="button" 
-                  className="btn" 
-                  onClick={handleGoToQR}
-                  disabled
-                  style={{ 
-                    background: "var(--line)", 
-                    color: "var(--muted)", 
-                    padding: "14px 28px", 
-                    fontSize: "15px", 
-                    fontWeight: 600,
-                    cursor: "not-allowed"
-                  }}
-                  title="QR code available after admin approval"
-                >
-                  View QR Code (Pending Approval)
-                </button>
-              </div>
-              <button 
-                type="button" 
-                className="btn" 
-                onClick={handleEditProfile}
-                style={{ 
-                  background: "transparent", 
-                  color: "var(--navy)", 
-                  border: "2px solid var(--navy)", 
-                  boxShadow: "none", 
-                  minWidth: "180px", 
-                  padding: "12px 26px", 
-                  fontSize: "14px",
-                  fontWeight: 600
-                }}
-              >
-                Edit Profile
-              </button>
-              <p style={{ margin: "16px 0 0", fontSize: "12px", color: "var(--muted)" }}>
-                Your profile is saved securely under DPDP Act, 2023. All data encrypted.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
     );
@@ -874,19 +720,78 @@ export default function ProfileView() {
                                         aria-invalid={!!error}
                                       />
                                     )}
-                                    {field.type === "file" && (
-                                      <input
-                                        type="file"
-                                        id={fieldId}
-                                        accept={field.accept}
-                                        onChange={e => {
-                                          const file = e.target.files?.[0];
-                                          if (file) handleRepeaterChange(rep.key, idx, field.id, file);
-                                        }}
-                                        disabled={saving}
-                                        aria-invalid={!!error}
-                                      />
-                                    )}
+                                    {field.type === "file" && (() => {
+                                        const fileUrl = row.file && typeof row.file === "string" ? row.file : "";
+                                        const hasFile = row[field.id] instanceof File || fileUrl;
+                                        const isImage = fileUrl.startsWith("data:image/") || (fileUrl.startsWith("http") && (row.type?.startsWith("image/") || row.file_name?.match(/\.(jpg|jpeg|png)$/i)));
+                                        const isPdf = fileUrl.startsWith("data:application/pdf") || (fileUrl.startsWith("http") && row.type === "application/pdf");
+                                        
+                                        // Create blob URL for base64 PDFs to avoid browser restrictions
+                                        const getPdfBlobUrl = (url: string) => {
+                                          if (url.startsWith("data:application/pdf;base64,")) {
+                                            const base64 = url.split(",")[1];
+                                            const byteChars = atob(base64);
+                                            const byteNumbers = new Array(byteChars.length);
+                                            for (let i = 0; i < byteChars.length; i++) {
+                                              byteNumbers[i] = byteChars.charCodeAt(i);
+                                            }
+                                            const byteArray = new Uint8Array(byteNumbers);
+                                            const blob = new Blob([byteArray], { type: "application/pdf" });
+                                            return URL.createObjectURL(blob);
+                                          }
+                                          return url;
+                                        };
+                                        
+                                        if (hasFile && !saving) {
+                                          // Show preview with remove option
+                                          return (
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                              <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                                                <span style={{ fontSize: "13px", color: "var(--muted)" }}>
+                                                  Current: {row[field.id] instanceof File
+                                                    ? row[field.id].name
+                                                    : row.file_name || row.name}
+                                                </span>
+                                                <button type="button" className="link rm" style={{ padding: "4px 12px", fontSize: "12px" }} onClick={() => handleRepeaterChange(rep.key, idx, field.id, "")}>
+                                                  🗑 Remove
+                                                </button>
+                                              </div>
+                                              {isImage && fileUrl && (
+                                                <img src={fileUrl} alt="Report preview" style={{ maxWidth: "200px", maxHeight: "150px", border: "1px solid var(--line)", borderRadius: "4px" }} />
+                                              )}
+                                              {isPdf && fileUrl && (
+                                                <a href={getPdfBlobUrl(fileUrl)} target="_blank" rel="noopener noreferrer" style={{ fontSize: "13px", color: "var(--primary)", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                                  📄 Open PDF
+                                                </a>
+                                              )}
+                                            </div>
+                                          );
+                                        }
+                                        
+                                        // Show file input
+                                        return (
+                                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                            <input
+                                              type="file"
+                                              id={fieldId}
+                                              accept={field.accept}
+                                              onChange={e => {
+                                                const file = e.target.files?.[0];
+                                                if (file) handleRepeaterChange(rep.key, idx, field.id, file);
+                                              }}
+                                              disabled={saving}
+                                              aria-invalid={!!error}
+                                            />
+                                            {hasFile && saving && (
+                                              <span style={{ fontSize: "13px", color: "var(--muted)" }}>
+                                                Current: {row[field.id] instanceof File
+                                                  ? row[field.id].name
+                                                  : row.file_name || row.name}
+                                              </span>
+                                            )}
+                                          </div>
+                                        );
+                                      })()}
                                     <div className="err" data-e={fieldId}>{error}</div>
                                   </div>
                                 );
