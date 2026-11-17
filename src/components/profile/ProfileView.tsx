@@ -561,12 +561,18 @@ export default function ProfileView() {
             borderTop: "4px solid var(--navy)" 
           }}>
             <div className="sb" style={{ padding: "28px 24px", textAlign: "center" }}>
-              <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap", marginBottom: "16px" }}>
+              <div style={{ 
+                display: "grid", 
+                gridTemplateColumns: "1fr 1fr", 
+                gap: "16px",
+                maxWidth: "420px",
+                margin: "0 auto 16px"
+              }}>
                 <button 
                   type="button" 
                   className="btn" 
                   onClick={handleGoToStatus}
-                  style={{ background: "var(--navy)", minWidth: "180px", padding: "14px 28px", fontSize: "15px", fontWeight: 600 }}
+                  style={{ background: "var(--navy)", padding: "14px 28px", fontSize: "15px", fontWeight: 600 }}
                 >
                   View Status Page
                 </button>
@@ -574,7 +580,7 @@ export default function ProfileView() {
                   type="button" 
                   className="btn" 
                   onClick={handleGoToQR}
-                  style={{ background: "var(--primary)", minWidth: "180px", padding: "14px 28px", fontSize: "15px", fontWeight: 600 }}
+                  style={{ background: "var(--primary)", padding: "14px 28px", fontSize: "15px", fontWeight: 600 }}
                 >
                   View QR Code
                 </button>
