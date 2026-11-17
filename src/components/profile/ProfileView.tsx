@@ -433,71 +433,116 @@ export default function ProfileView() {
             </button>
           </div>
         </div>
-        <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center", padding: "40px 20px" }}>
-          <div style={{ 
-            width: "80px", height: "80px", borderRadius: "50%", 
-            background: "var(--green)", color: "white", 
-            display: "flex", alignItems: "center", justifyContent: "center", 
-            fontSize: "36px", margin: "0 auto 24px" 
-          }}>
-            ✓
-          </div>
-          <h1 style={{ margin: "0 0 12px", fontSize: "28px", color: "var(--navy)" }}>
-            Profile Submitted Successfully
-          </h1>
-          <p style={{ color: "var(--muted)", marginBottom: "24px", fontSize: "16px", lineHeight: 1.6 }}>
-            Your emergency profile has been saved and is now <strong>pending admin approval</strong>.
-            Once verified, verified ER staff will be able to access your profile via your QR code or emergency link.
-          </p>
-          
-          <div className="card" style={{ 
-            textAlign: "left", marginBottom: "24px", 
-            background: "var(--saffron-l)", borderColor: "var(--saffron)",
-            borderLeftWidth: "6px"
-          }}>
-            <div style={{ padding: "20px" }}>
-              <h3 style={{ margin: "0 0 12px", color: "var(--navy)", fontSize: "16px" }}>
-                ⏳ What happens next?
-              </h3>
-              <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: 2, color: "var(--text)" }}>
-                <li>Our admin team will review your profile within 24-48 hours</li>
-                <li>You'll receive an email notification once approved</li>
-                <li>After approval, your QR code and emergency link will become active</li>
-                <li>You can still edit your profile while it's pending review</li>
-              </ul>
+        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+          <div className="card" style={{ marginBottom: "24px" }}>
+            <div style={{ 
+              textAlign: "center", 
+              padding: "48px 32px",
+              background: "linear-gradient(135deg, rgba(19, 136, 8, 0.08) 0%, rgba(19, 136, 8, 0.02) 100%)",
+              borderTop: "4px solid var(--green)",
+              borderRadius: "10px 10px 0 0",
+            }}>
+              <div style={{ 
+                width: "88px", height: "88px", borderRadius: "50%", 
+                background: "var(--green)", color: "white", 
+                display: "flex", alignItems: "center", justifyContent: "center", 
+                fontSize: "40px", margin: "0 auto 24px",
+                boxShadow: "0 8px 24px rgba(19, 136, 8, 0.3)"
+              }}>
+                ✓
+              </div>
+              <h1 style={{ margin: "0 0 12px", fontSize: "32px", color: "var(--navy)", fontWeight: 700 }}>
+                Profile Submitted Successfully
+              </h1>
+              <p style={{ color: "var(--muted)", marginBottom: "8px", fontSize: "17px", lineHeight: 1.6, maxWidth: "480px", marginLeft: "auto", marginRight: "auto" }}>
+                Your emergency profile has been saved and is now <strong>pending admin approval</strong>.
+              </p>
+              <p style={{ color: "var(--muted)", marginBottom: "0", fontSize: "15px", lineHeight: 1.6, maxWidth: "480px", marginLeft: "auto", marginRight: "auto" }}>
+                Once verified, ER staff can access your profile via QR code or emergency link.
+              </p>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button 
-              type="button" 
-              className="btn" 
-              onClick={handleGoToStatus}
-              style={{ background: "var(--navy)", minWidth: "180px" }}
-            >
-              View Status Page
-            </button>
-            <button 
-              type="button" 
-              className="btn" 
-              onClick={handleGoToQR}
-              style={{ background: "var(--primary)", minWidth: "180px" }}
-            >
-              View QR Code
-            </button>
-            <button 
-              type="button" 
-              className="btn" 
-              onClick={handleEditProfile}
-              style={{ background: "var(--muted)", minWidth: "180px" }}
-            >
-              Edit Profile
-            </button>
+          <div className="card" style={{ marginBottom: "24px" }}>
+            <div className="sh" style={{ background: "var(--saffron-l)", borderBottom: "2px solid var(--saffron)" }}>
+              <h2 style={{ margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "22px" }}>⏳</span>
+                What happens next
+              </h2>
+            </div>
+            <div className="sb" style={{ padding: "28px 24px" }}>
+              <div style={{ display: "grid", gap: "16px" }}>
+                <div style={{ display: "flex", gap: "16px", padding: "16px", background: "var(--bg)", borderRadius: "8px", border: "1px solid var(--line)" }}>
+                  <div style={{ flex: "0 0 40px", width: "40px", height: "40px", borderRadius: "50%", background: "var(--saffron-l)", color: "var(--saffron-d)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "16px" }}>1</div>
+                  <div>
+                    <strong style={{ color: "var(--navy)", display: "block", marginBottom: "4px" }}>Admin Review</strong>
+                    <span style={{ color: "var(--muted)", fontSize: "14px" }}>Our team reviews your profile within 24&ndash;48 hours</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "16px", padding: "16px", background: "var(--bg)", borderRadius: "8px", border: "1px solid var(--line)" }}>
+                  <div style={{ flex: "0 0 40px", width: "40px", height: "40px", borderRadius: "50%", background: "var(--saffron-l)", color: "var(--saffron-d)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "16px" }}>2</div>
+                  <div>
+                    <strong style={{ color: "var(--navy)", display: "block", marginBottom: "4px" }}>Notification</strong>
+                    <span style={{ color: "var(--muted)", fontSize: "14px" }}>You'll receive an email once approved</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "16px", padding: "16px", background: "var(--bg)", borderRadius: "8px", border: "1px solid var(--line)" }}>
+                  <div style={{ flex: "0 0 40px", width: "40px", height: "40px", borderRadius: "50%", background: "var(--saffron-l)", color: "var(--saffron-d)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "16px" }}>3</div>
+                  <div>
+                    <strong style={{ color: "var(--navy)", display: "block", marginBottom: "4px" }}>Access Active</strong>
+                    <span style={{ color: "var(--muted)", fontSize: "14px" }}>Your QR code & emergency link become active</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "16px", padding: "16px", background: "var(--bg)", borderRadius: "8px", border: "1px solid var(--line)" }}>
+                  <div style={{ flex: "0 0 40px", width: "40px", height: "40px", borderRadius: "50%", background: "var(--saffron-l)", color: "var(--saffron-d)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "16px" }}>4</div>
+                  <div>
+                    <strong style={{ color: "var(--navy)", display: "block", marginBottom: "4px" }}>Still Editable</strong>
+                    <span style={{ color: "var(--muted)", fontSize: "14px" }}>You can update your profile while pending review</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <p style={{ marginTop: "24px", fontSize: "13px", color: "var(--muted)" }}>
-            Your profile is saved securely. You can continue editing until it's approved.
-          </p>
+          <div className="card" style={{ background: "linear-gradient(135deg, rgba(15, 33, 89, 0.05) 0%, transparent 100%)", borderTop: "4px solid var(--navy)" }}>
+            <div className="sh" style={{ background: "transparent", borderBottom: "none", paddingBottom: "0" }}>
+              <h2 style={{ margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "22px" }}>🚀</span>
+                Quick Actions
+              </h2>
+            </div>
+            <div className="sb" style={{ paddingTop: "24px", textAlign: "center" }}>
+              <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap", marginBottom: "16px" }}>
+                <button 
+                  type="button" 
+                  className="btn" 
+                  onClick={handleGoToStatus}
+                  style={{ background: "var(--navy)", minWidth: "190px", padding: "14px 28px", fontSize: "15px" }}
+                >
+                  View Status Page
+                </button>
+                <button 
+                  type="button" 
+                  className="btn" 
+                  onClick={handleGoToQR}
+                  style={{ background: "var(--primary)", minWidth: "190px", padding: "14px 28px", fontSize: "15px" }}
+                >
+                  View QR Code
+                </button>
+                <button 
+                  type="button" 
+                  className="btn" 
+                  onClick={handleEditProfile}
+                  style={{ background: "transparent", color: "var(--navy)", border: "2px solid var(--navy)", boxShadow: "none", minWidth: "190px", padding: "12px 26px", fontSize: "15px" }}
+                >
+                  Edit Profile
+                </button>
+              </div>
+              <p style={{ margin: 0, fontSize: "13px", color: "var(--muted)" }}>
+                Your profile is saved securely under DPDP Act, 2023. All data encrypted.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     );
