@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode } from "react";
 
-type ViewType = "auth" | "profile" | "status" | "qrpage";
+type ViewType = "auth" | "profile" | "status" | "qr";
 
 interface ViewContextType {
   view: ViewType;
@@ -16,7 +16,7 @@ function getInitialView(): ViewType {
   const hash = window.location.hash.slice(1);
   if (hash === "profile") return "profile";
   if (hash === "status") return "status";
-  if (hash === "qrpage") return "qrpage";
+  if (hash === "qr") return "qr";
   return "auth";
 }
 

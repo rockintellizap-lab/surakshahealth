@@ -14,18 +14,67 @@ export async function saveProfile(userId: string, data: EmergencyProfileFormData
   const db = getDb();
   const profileRef = doc(db, PROFILES_COLLECTION, userId);
   const existing = await getDoc(profileRef);
-  
+
   const profileData: EmergencyProfile = {
-    bloodGroup: data.bloodGroup,
-    dateOfBirth: data.dateOfBirth,
-    allergies: data.allergies,
-    emergencyContact: data.emergencyContact,
-    abhaId: data.abhaId || "",
-    aadhaarLast4: data.aadhaarLast4 || "",
+    // Section A
+    fn: data.fn || "",
+    mn: data.mn || "",
+    ln: data.ln || "",
+    gender: data.gender || "",
+    dob: data.dob || "",
+    bg: data.bg || "",
+    wt: data.wt || "",
+    lang: data.lang || "",
+    email: data.email || "",
+    mob: data.mob || "",
+    abha: data.abha || "",
+    aadhaar: data.aadhaar || "",
+    addr: data.addr || "",
+    photo: data.photo || "",
+
+    // Section B
+    pc_name: data.pc_name || "",
+    pc_rel: data.pc_rel || "",
+    pc_mob: data.pc_mob || "",
+    pc_alt: data.pc_alt || "",
+    pc_email: data.pc_email || "",
+    pc_addr: data.pc_addr || "",
+    sc_name: data.sc_name || "",
+    sc_rel: data.sc_rel || "",
+    sc_mob: data.sc_mob || "",
+    sc_alt: data.sc_alt || "",
+    sc_email: data.sc_email || "",
+    sc_addr: data.sc_addr || "",
+
+    // Section C
+    ill: data.ill || "",
+    chronic: data.chronic || "",
+    ltt: data.ltt || "",
+    inf: data.inf || "",
+
+    // Section D (JSON)
+    allergies: data.allergies || "[]",
+
+    // Section E (JSON)
+    medications: data.medications || "[]",
+
+    // Section F
+    vaccinations: data.vaccinations || "",
+
+    // Section G (JSON)
+    reports: data.reports || "[]",
+
+    // Legacy fields
+    bloodGroup: data.bloodGroup || data.bg || "",
+    dateOfBirth: data.dateOfBirth || data.dob || "",
+    emergencyContact: data.emergencyContact || `${data.pc_name || ""} - ${data.pc_mob || ""}`,
+    abhaId: data.abhaId || data.abha || "",
+    aadhaarLast4: data.aadhaarLast4 || data.aadhaar?.slice(-4) || "",
+
     updatedAt: serverTimestamp() as any,
     createdAt: existing.exists() ? (existing.data().createdAt as any) : serverTimestamp() as any,
   };
-  
+
   await setDoc(profileRef, profileData, { merge: true });
 }
 

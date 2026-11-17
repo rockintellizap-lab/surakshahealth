@@ -54,7 +54,7 @@ function HomeContent() {
 
         {user && view === "status" && <StatusView />}
 
-        {user && view === "qrpage" && <QRView />}
+        {user && view === "qr" && <QRView />}
 
         {!user && view !== "auth" && (
           <AuthSection />
