@@ -369,14 +369,9 @@ export default function ReportManager({
                     🗑 Delete
                   </button>
                 </div>
-
-                <div style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.6, marginTop: 4 }}>
-                  <strong>Government-style safeguards:</strong> Replace requires reason (audit logged).
-                  Delete requires triple confirmation (OK → OK → Type "DELETE").
-                  All actions logged in audit trail with timestamp, user, and details.
-                </div>
               </div>
             )}
+
           </div>
         );
       })}
