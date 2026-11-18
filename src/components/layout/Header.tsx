@@ -6,16 +6,12 @@ import LogoSvg from "@/components/common/LogoSvg";
 export default function Header() {
   const [lang, setLang] = useState("EN");
 
-  const handleReset = () => {
-    window.dispatchEvent(new CustomEvent("suraksha:reset-forms"));
-  };
-
   return (
     <>
       <div className="tri" />
       <div className="util">
         <div>
-          <span>🇮🇳 GovTech prototype portal for citizens</span>
+          <span>🇮🇳 CSR Initiated by NIPER, ABDM aligned portal for citizens</span>
           <span className="fs">
             <a href="#main">Skip to main content</a> | Text size{" "}
             <button
@@ -59,7 +55,7 @@ export default function Header() {
           <div className="bt">
             <b>
               SurakshaHealth India
-              <em className="badge">GOVTECH PROTOTYPE</em>
+              <em className="badge">CSR Initiated by NIPER, ABDM aligned portal for citizens</em>
             </b>
             <span className="tag">
               National Emergency Health Locker & Trauma Access Portal • UX4G 3.0 & ABDM Aligned
@@ -92,16 +88,6 @@ export default function Header() {
             </div>
             <button type="button" className="wa">
               💬 WhatsApp / SMS Alerts <i>1</i>
-            </button>
-            <button
-              type="button"
-              className="reset"
-              id="reset"
-              aria-label="Reset forms"
-              title="Reset"
-              onClick={handleReset}
-            >
-              ↻
             </button>
           </div>
         </div>

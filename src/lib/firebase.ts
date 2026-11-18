@@ -1,6 +1,7 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -21,6 +22,7 @@ function createFirebaseApp(): FirebaseApp {
 let appInstance: FirebaseApp | null = null;
 let authInstance: Auth | null = null;
 let dbInstance: Firestore | null = null;
+let storageInstance: FirebaseStorage | null = null;
 
 function getApp(): FirebaseApp {
   if (!appInstance) {
@@ -43,18 +45,30 @@ function getDbInstance(): Firestore {
   return dbInstance;
 }
 
-export const app = typeof window !== "undefined" ? getApp() : null;
-export const auth = typeof window !== "undefined" ? getAuthInstance() : null;
-export const db = typeof window !== "undefined" ? getDbInstance() : null;
+function getStorageInstance(): FirebaseStorage {
+  if (!storageInstance) {
+    storageInstance = getStorage(getApp());
+  }
+  return storageInstance;
+}
 
-export function getFirebaseApp(): FirebaseApp | null {
-  return typeof window !== "undefined" ? getApp() : null;
+export const app = typeof window !== "undefined" ? getApp() : getApp();
+export const auth = typeof window !== "undefined" ? getAuthInstance() : null;
+export const db = typeof window !== "undefined" ? getDbInstance() : getDbInstance();
+export const storage = typeof window !== "undefined" ? getStorageInstance() : null;
+
+export function getFirebaseApp(): FirebaseApp {
+  return getApp();
 }
 
 export function getFirebaseAuth(): Auth | null {
   return typeof window !== "undefined" ? getAuthInstance() : null;
 }
 
-export function getFirebaseDb(): Firestore | null {
-  return typeof window !== "undefined" ? getDbInstance() : null;
+export function getFirebaseDb(): Firestore {
+  return getDbInstance();
+}
+
+export function getFirebaseStorage(): FirebaseStorage | null {
+  return typeof window !== "undefined" ? getStorageInstance() : null;
 }

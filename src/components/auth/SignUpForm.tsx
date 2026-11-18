@@ -52,9 +52,9 @@ export default function SignUpForm({ active }: { active: boolean }) {
       setSubmitting(true);
       setMsg({ text: "", hidden: true, error: false });
       try {
-        await signUp(email, password);
+        const redirectPath = await signUp(email, password);
         setMsg({ text: "Account created successfully!", hidden: false, error: false });
-        setView("profile");
+        setView(redirectPath as any);
       } catch (err: any) {
         const message = err.code === "auth/email-already-in-use"
           ? "An account with this email already exists."
@@ -84,13 +84,8 @@ export default function SignUpForm({ active }: { active: boolean }) {
         <div>
           <h2>Citizen Emergency Vault Registration</h2>
           <p className="sub">
-            Step 1 of 3 • UX4G 3.0 & DPDP Act 2023 Compliant
+            UX4G 3.0 & DPDP Act 2023 Compliant
           </p>
-        </div>
-        <div className="steps" aria-hidden="true">
-          <span className="on">1</span>
-          <span>2</span>
-          <span>3</span>
         </div>
       </div>
 

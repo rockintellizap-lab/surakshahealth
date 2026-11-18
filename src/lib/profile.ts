@@ -46,7 +46,7 @@ export interface EmergencyProfile {
   // Section F: Vaccinations
   vaccinations?: string;
 
-  // Section G: Medical reports (JSON string)
+  // Section G: Medical reports (JSON string of UploadedFile array)
   reports?: string;
 
   // Legacy fields for backward compatibility
@@ -56,8 +56,23 @@ export interface EmergencyProfile {
   abhaId?: string;
   aadhaarLast4?: string;
 
+  // Admin approval status
+  status?: "pending" | "approved" | "rejected";
+  approvedAt?: Timestamp;
+  rejectedAt?: Timestamp;
+  rejectedReason?: string;
+
   updatedAt: Timestamp;
   createdAt: Timestamp;
+}
+
+export interface AuditLog {
+  id?: string;
+  profileId: string;
+  action: "view" | "qr_scan" | "qr_download" | "qr_print" | "approve" | "reject" | "regenerate_qr" | "responder_view" | "report_view" | "report_download" | "report_delete" | "report_replace";
+  performedBy: string; // email or uid of admin/system
+  performedAt: Timestamp;
+  details?: Record<string, any>;
 }
 
 export interface EmergencyProfileFormData {

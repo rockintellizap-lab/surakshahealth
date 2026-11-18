@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useView } from "@/context/ViewContext";
-import { getProfile, saveProfile } from "@/lib/profileService";
+import { getProfile, saveProfile, getAuditLogs } from "@/lib/profileService";
+import { uploadReportFile } from "@/lib/supabaseStorage";
+import ReportManager from "./ReportManager";
 import type { EmergencyProfileFormData } from "@/lib/profile";
 
 const BG = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"];
@@ -159,7 +161,6 @@ export default function ProfileView() {
   const { setView } = useView();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
   const [msg, setMsg] = useState({ text: "", hidden: true, error: false });
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [repeaters, setRepeaters] = useState<Record<string, any[]>>({
@@ -170,6 +171,9 @@ export default function ProfileView() {
   const [vacWords, setVacWords] = useState(0);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [showAuditLogs, setShowAuditLogs] = useState(false);
+  const [logsLoading, setLogsLoading] = useState(false);
   const fileInputsRef = useRef<Record<string, HTMLInputElement | null>>({});
   const uidCounter = useRef(0);
 
@@ -195,8 +199,32 @@ export default function ProfileView() {
         if (data.reports) {
           try {
             const parsed = JSON.parse(data.reports);
-            if (Array.isArray(parsed)) setRepeaters(prev => ({ ...prev, rpt: parsed }));
-          } catch {}
+            if (Array.isArray(parsed)) {
+              // Normalize old data: ensure file_name exists for display
+              const normalized = parsed.map((r: any) => {
+                let fileName = r.file_name || r.name || "Report";
+                // If file is a Firebase Storage URL, extract filename from URL
+                if (r.file && typeof r.file === "string" && r.file.includes("firebasestorage.googleapis.com") && !r.file_name) {
+                  try {
+                    const urlParts = r.file.split("/");
+                    const lastPart = urlParts[urlParts.length - 1];
+                    const decoded = decodeURIComponent(lastPart);
+                    const namePart = decoded.split("_").slice(1).join("_");
+                    if (namePart) fileName = namePart;
+                  } catch {}
+                }
+                return {
+                  ...r,
+                  url: r.file || r.url,
+                  file_name: fileName,
+                };
+              });
+              console.log("Loaded reports:", normalized);
+              setRepeaters(prev => ({ ...prev, rpt: normalized }));
+            }
+          } catch (e) {
+            console.error("Failed to parse reports:", e);
+          }
         }
         if (data.vaccinations) {
           setVacWords(words(data.vaccinations));
@@ -209,6 +237,20 @@ export default function ProfileView() {
       console.error("Failed to load profile:", err);
     } finally {
       setLoading(false);
+    }
+  }, [user]);
+
+  const loadAuditLogs = useCallback(async () => {
+    if (!user) return;
+    setLogsLoading(true);
+    try {
+      const logs = await getAuditLogs(user.uid, 50);
+      setAuditLogs(logs);
+    } catch (err) {
+      console.error("Failed to load audit logs:", err);
+      setAuditLogs([]);
+    } finally {
+      setLogsLoading(false);
     }
   }, [user]);
 
@@ -360,6 +402,30 @@ export default function ProfileView() {
     setMsg({ text: "", hidden: true, error: false });
 
     try {
+      // Upload report files to Firebase Storage first
+      const uploadedReports: any[] = [];
+      for (const row of repeaters.rpt) {
+        if (row.file instanceof File) {
+          const uploaded = await uploadReportFile(user!.uid, row.file);
+          uploadedReports.push({
+            name: row.name || uploaded.name,
+            file: uploaded.url,
+            file_name: uploaded.name,
+            size: uploaded.size,
+            type: uploaded.type,
+          });
+        } else if (row.file && typeof row.file === "string" && row.file.startsWith("http")) {
+          // Already uploaded (from previous save)
+          uploadedReports.push({
+            name: row.name || row.file_name,
+            file: row.file,
+            file_name: row.file_name,
+            size: row.size,
+            type: row.type,
+          });
+        }
+      }
+
       const saveData: EmergencyProfileFormData & Record<string, any> = {
         bloodGroup: formData.bg || "",
         dateOfBirth: formData.dob || "",
@@ -369,39 +435,122 @@ export default function ProfileView() {
         aadhaarLast4: formData.aadhaar?.slice(-4) || "",
         ...formData,
         medications: JSON.stringify(repeaters.med),
-        reports: JSON.stringify(repeaters.rpt),
+        reports: JSON.stringify(uploadedReports),
         vaccinations: formData.vaccinations || "",
         photo: photoPreview || "",
       };
 
       await saveProfile(user!.uid, saveData);
-      setSaveStatus("success");
-      setMsg({ text: "Profile saved successfully!", hidden: false, error: false });
+      setMsg({ text: "Profile saved successfully! Redirecting to application status...", hidden: false, error: false });
+      // Redirect to status page after short delay
+      setTimeout(() => {
+        setView("status");
+      }, 1500);
     } catch (err) {
-      setSaveStatus("error");
-      setMsg({ text: "Failed to save profile. Please try again.", hidden: false, error: true });
+      console.error("Save profile error:", err);
+      setMsg({ text: `Failed to save profile: ${err instanceof Error ? err.message : "Unknown error"}`, hidden: false, error: true });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleGoToStatus = () => {
-    setSaveStatus("idle");
-    setView("status");
-  };
-
-  const handleGoToQR = () => {
-    setSaveStatus("idle");
-    setView("qr");
-  };
-
-  const handleEditProfile = () => {
-    setSaveStatus("idle");
-  };
-
   const handleLogout = async () => {
     await logout();
     setView("auth");
+  };
+
+  const renderAuditModal = () => {
+    if (!showAuditLogs) return null;
+
+    return (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(15,33,89,0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+          zIndex: 1000,
+        }}
+        onClick={() => setShowAuditLogs(false)}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="audit-title"
+      >
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            maxWidth: 900,
+            width: "100%",
+            maxHeight: "80vh",
+            overflow: "auto",
+            boxShadow: "0 24px 48px rgba(15,33,89,.24)",
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--line)" }}>
+            <h3 id="audit-title" style={{ margin: 0, fontSize: 18 }}>Access logs for your profile</h3>
+            <button
+              type="button"
+              onClick={() => setShowAuditLogs(false)}
+              aria-label="Close"
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 22,
+                cursor: "pointer",
+                color: "var(--muted)",
+                lineHeight: 1,
+                padding: "0 8px",
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          <div style={{ padding: 20 }}>
+            {logsLoading ? (
+              <div style={{ padding: 32, textAlign: "center" }}>Loading access logs…</div>
+            ) : auditLogs.length === 0 ? (
+              <div style={{ padding: 32, textAlign: "center", color: "var(--muted)" }}>No access logs found.</div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                  <thead>
+                    <tr style={{ background: "var(--saffron-l)", textAlign: "left" }}>
+                      <th style={{ padding: "10px 12px" }}>Date & Time</th>
+                      <th style={{ padding: "10px 12px" }}>Action</th>
+                      <th style={{ padding: "10px 12px" }}>Performed By</th>
+                      <th style={{ padding: "10px 12px" }}>Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {auditLogs.map((log, idx) => (
+                      <tr key={log.id || idx} style={{ borderTop: "1px solid var(--line)" }}>
+                        <td style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>
+                          {log.performedAt?.toDate ? log.performedAt.toDate().toLocaleString("en-IN") : "—"}
+                        </td>
+                        <td style={{ padding: "10px 12px" }}>
+                          <span className="pill" style={{ background: "var(--saffron-l)", color: "var(--saffron-d)", fontSize: 11, textTransform: "capitalize" }}>
+                            {log.action}
+                          </span>
+                        </td>
+                        <td style={{ padding: "10px 12px" }}>{log.performedBy}</td>
+                        <td style={{ padding: "10px 12px", color: "var(--muted)", fontSize: 13 }}>
+                          {log.details ? JSON.stringify(log.details) : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -415,207 +564,6 @@ export default function ProfileView() {
         </div>
         <div style={{ padding: "40px", textAlign: "center" }}>
           Loading profile...
-        </div>
-      </section>
-    );
-  }
-
-// Show success/approval flow after save
-  if (saveStatus === "success") {
-    return (
-      <section id="profile" className="pf">
-        <div className="side">
-          <div className="who">
-            <small>Signed in as</small>
-            <b>{user?.email}</b>
-            <button type="button" className="link" onClick={handleLogout}>
-              Sign out
-            </button>
-          </div>
-        </div>
-        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-          {/* Row 1: Success Header */}
-          <div className="card" style={{ marginBottom: "24px" }}>
-            <div style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              gap: "16px",
-              padding: "32px",
-              background: "linear-gradient(135deg, rgba(19, 136, 8, 0.08) 0%, rgba(19, 136, 8, 0.02) 100%)",
-              borderTop: "4px solid var(--green)",
-              borderRadius: "10px 10px 0 0",
-            }}>
-              <div style={{ 
-                width: "56px", height: "56px", borderRadius: "50%", 
-                background: "var(--green)", color: "white", 
-                display: "flex", alignItems: "center", justifyContent: "center", 
-                fontSize: "28px", flexShrink: 0,
-                boxShadow: "0 4px 16px rgba(19, 136, 8, 0.3)"
-              }}>
-                ✓
-              </div>
-              <div>
-                <h1 style={{ margin: "0 0 4px", fontSize: "24px", color: "var(--navy)", fontWeight: 700 }}>
-                  Profile Submitted Successfully
-                </h1>
-                <p style={{ color: "var(--muted)", margin: 0, fontSize: "14px", lineHeight: 1.6 }}>
-                  Your emergency profile has been saved and is now <strong>pending admin approval</strong>.
-                </p>
-                <p style={{ color: "var(--muted)", margin: "4px 0 0", fontSize: "13px", lineHeight: 1.5 }}>
-                  Once verified, ER staff can access your profile via QR code or emergency link.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Row 2: 3-Step Horizontal Progress Flow */}
-          <div className="card" style={{ marginBottom: "24px" }}>
-            <div className="sh" style={{ background: "var(--saffron-l)", borderBottom: "2px solid var(--saffron)" }}>
-              <h2 style={{ margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "20px" }}>📋</span>
-                Submission Progress
-              </h2>
-            </div>
-            <div className="sb" style={{ padding: "28px 24px" }}>
-              <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "8px",
-                flexWrap: "wrap",
-                justifyContent: "center"
-              }}>
-                {/* Step 1: Profile Creation */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                  <div style={{ 
-                    width: "40px", height: "40px", borderRadius: "50%", 
-                    background: "var(--green)", color: "white", 
-                    display: "flex", alignItems: "center", justifyContent: "center", 
-                    fontWeight: 700, fontSize: "18px",
-                    boxShadow: "0 0 0 3px rgba(19, 136, 8, 0.2)"
-                  }}>
-                    ✓
-                  </div>
-                  <span style={{ fontSize: "12px", color: "var(--navy)", fontWeight: 600, whiteSpace: "nowrap", textAlign: "center" }}>
-                    Profile Creation
-                  </span>
-                  <span style={{ fontSize: "11px", color: "var(--green)", fontWeight: 600 }}>
-                    ✓ Completed
-                  </span>
-                </div>
-                
-                {/* Connector */}
-                <div style={{ width: "32px", height: "2px", background: "var(--green)" }} />
-                
-                {/* Step 2: Data Verification */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                  <div style={{ 
-                    width: "40px", height: "40px", borderRadius: "50%", 
-                    background: "var(--green)", color: "white", 
-                    display: "flex", alignItems: "center", justifyContent: "center", 
-                    fontWeight: 700, fontSize: "18px",
-                    boxShadow: "0 0 0 3px rgba(19, 136, 8, 0.2)"
-                  }}>
-                    ✓
-                  </div>
-                  <span style={{ fontSize: "12px", color: "var(--navy)", fontWeight: 600, whiteSpace: "nowrap", textAlign: "center" }}>
-                    Data Verification
-                  </span>
-                  <span style={{ fontSize: "11px", color: "var(--green)", fontWeight: 600 }}>
-                    ✓ Completed
-                  </span>
-                </div>
-                
-                {/* Connector */}
-                <div style={{ width: "32px", height: "2px", background: "var(--saffron)" }} />
-                
-                {/* Step 3: Admin Approval - Current */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                  <div style={{ 
-                    width: "40px", height: "40px", borderRadius: "50%", 
-                    background: "var(--saffron)", color: "white", 
-                    display: "flex", alignItems: "center", justifyContent: "center", 
-                    fontWeight: 700, fontSize: "16px",
-                    boxShadow: "0 0 0 3px rgba(255, 153, 51, 0.4)",
-                    animation: "pulse 2s infinite"
-                  }}>
-                    3
-                  </div>
-                  <span style={{ fontSize: "12px", color: "var(--navy)", fontWeight: 600, whiteSpace: "nowrap", textAlign: "center" }}>
-                    Admin Approval
-                  </span>
-                  <span style={{ fontSize: "11px", color: "var(--saffron)", fontWeight: 600 }}>
-                    ⏳ Pending
-                  </span>
-                </div>
-              </div>
-              
-              <p style={{ margin: "16px 0 0", textAlign: "center", color: "var(--muted)", fontSize: "13px", lineHeight: 1.5 }}>
-                Our team will review within 24&ndash;48 hours. You&apos;ll get an email once approved.
-              </p>
-            </div>
-          </div>
-
-          {/* Row 3: Action Buttons */}
-          <div className="card" style={{ 
-            background: "linear-gradient(135deg, rgba(15, 33, 89, 0.05) 0%, transparent 100%)", 
-            borderTop: "4px solid var(--navy)" 
-          }}>
-            <div className="sb" style={{ padding: "28px 24px", textAlign: "center" }}>
-              <div style={{ 
-                display: "grid", 
-                gridTemplateColumns: "1fr 1fr", 
-                gap: "16px",
-                maxWidth: "420px",
-                margin: "0 auto 16px"
-              }}>
-                <button 
-                  type="button" 
-                  className="btn" 
-                  onClick={handleGoToStatus}
-                  style={{ background: "var(--navy)", padding: "14px 28px", fontSize: "15px", fontWeight: 600 }}
-                >
-                  View Status Page
-                </button>
-                <button 
-                  type="button" 
-                  className="btn" 
-                  onClick={handleGoToQR}
-                  disabled
-                  style={{ 
-                    background: "var(--line)", 
-                    color: "var(--muted)", 
-                    padding: "14px 28px", 
-                    fontSize: "15px", 
-                    fontWeight: 600,
-                    cursor: "not-allowed"
-                  }}
-                  title="QR code available after admin approval"
-                >
-                  View QR Code (Pending Approval)
-                </button>
-              </div>
-              <button 
-                type="button" 
-                className="btn" 
-                onClick={handleEditProfile}
-                style={{ 
-                  background: "transparent", 
-                  color: "var(--navy)", 
-                  border: "2px solid var(--navy)", 
-                  boxShadow: "none", 
-                  minWidth: "180px", 
-                  padding: "12px 26px", 
-                  fontSize: "14px",
-                  fontWeight: 600
-                }}
-              >
-                Edit Profile
-              </button>
-              <p style={{ margin: "16px 0 0", fontSize: "12px", color: "var(--muted)" }}>
-                Your profile is saved securely under DPDP Act, 2023. All data encrypted.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
     );
@@ -817,6 +765,64 @@ export default function ProfileView() {
 
                 {section.rep && (() => {
                   const rep = section.rep;
+                  
+                  // Use ReportManager for medical reports (rpt key)
+                  if (rep.key === "rpt") {
+                    return (
+                      <div>
+                        <ReportManager
+                          userId={user?.uid || ""}
+                          reports={repeaters.rpt || []}
+                          onReportsChange={(newReports) => setRepeaters(prev => ({ ...prev, rpt: newReports }))}
+                          disabled={saving}
+                          userEmail={user?.email ?? undefined}
+                        />
+                        <div style={{ marginTop: 16 }}>
+                          <button
+                            type="button"
+                            className="add"
+                            data-add={rep.key}
+                            onClick={() => {
+                              const input = document.createElement("input");
+                              input.type = "file";
+                              input.accept = ".pdf,.jpg,.jpeg,.png";
+                              input.onchange = async (e) => {
+                                const target = e.target as HTMLInputElement;
+                                const file = target.files?.[0];
+                                if (!file) return;
+                                
+                                const name = file.name;
+                                if (!name) return;
+                                if (!user?.uid) return;
+
+                                // Upload the file
+                                try {
+                                  const uploaded = await uploadReportFile(user.uid, file);
+                                  setRepeaters(prev => ({
+                                    ...prev,
+                                    rpt: [...(prev.rpt || []), { ...uploaded, name }]
+                                  }));
+                                } catch (err) {
+                                  console.error("Upload failed:", err);
+                                  alert("Failed to upload report. Please try again.");
+                                }
+                              };
+                              input.click();
+                            }}
+                            disabled={saving || (repeaters.rpt?.length || 0) >= rep.max}
+                            style={{ marginTop: 12 }}
+                          >
+                            + Add Report
+                          </button>
+                          <span className="cnt" id={`c_${rep.key}`}>
+                            {repeaters.rpt?.length || 0} of {rep.max}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  // Default repeater for other sections (allergies, medications)
                   return (
                     <div>
                       <div data-rep={rep.key} className="repeater">
@@ -875,17 +881,28 @@ export default function ProfileView() {
                                       />
                                     )}
                                     {field.type === "file" && (
-                                      <input
-                                        type="file"
-                                        id={fieldId}
-                                        accept={field.accept}
-                                        onChange={e => {
-                                          const file = e.target.files?.[0];
-                                          if (file) handleRepeaterChange(rep.key, idx, field.id, file);
-                                        }}
-                                        disabled={saving}
-                                        aria-invalid={!!error}
-                                      />
+                                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                        <input
+                                          type="file"
+                                          id={fieldId}
+                                          accept={field.accept}
+                                          onChange={e => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleRepeaterChange(rep.key, idx, field.id, file);
+                                          }}
+                                          disabled={saving}
+                                          aria-invalid={!!error}
+                                        />
+                                        {(row[field.id] instanceof File
+                                          ? row[field.id].name
+                                          : row[`${field.id}_name`] || row.name || row.file_name) && (
+                                          <span style={{ fontSize: "13px", color: "var(--muted)" }}>
+                                            Current: {row[field.id] instanceof File
+                                              ? row[field.id].name
+                                              : row[`${field.id}_name`] || row.name || row.file_name}
+                                          </span>
+                                        )}
+                                      </div>
                                     )}
                                     <div className="err" data-e={fieldId}>{error}</div>
                                   </div>
@@ -913,6 +930,9 @@ export default function ProfileView() {
           <button className="btn" id="sv" type="submit" disabled={saving}>
             {saving ? "Saving..." : "Save profile"}
           </button>
+          <button type="button" className="btn ghost" onClick={() => { loadAuditLogs(); setShowAuditLogs(true); }} style={{ marginLeft: "12px" }}>
+            View Access Logs
+          </button>
           <span id="pmsg" role="status"></span>
         </div>
 
@@ -920,6 +940,7 @@ export default function ProfileView() {
           {msg.text}
         </div>
       </form>
+      {renderAuditModal()}
     </section>
   );
 }

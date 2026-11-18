@@ -8,8 +8,10 @@ const NAV_LINKS = [
   { view: "auth" as const, hash: "#forgot", label: "Account recovery" },
 ];
 
-export default function Nav() {
+export default function Nav({ isLoggedIn }: { isLoggedIn: boolean }) {
   const { setView } = useView();
+
+  if (isLoggedIn) return null;
 
   return (
     <nav className="gnav" aria-label="Primary">

@@ -7,8 +7,8 @@ import { getFirebaseAuth } from "@/lib/firebase";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<string>; // returns redirect path
+  signUp: (email: string, password: string) => Promise<string>; // returns redirect path
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -32,18 +32,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsubscribe;
   }, []);
 
+  const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@surakshahealth.in";
+
   const getAuthInstance = () => {
     const auth = getFirebaseAuth();
     if (!auth) throw new Error("Firebase Auth not initialized");
     return auth;
   };
 
-  const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(getAuthInstance(), email, password);
+  const getRedirectPath = (email: string | null | undefined): string => {
+    return email === ADMIN_EMAIL ? "admin" : "profile";
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<string> => {
+    await signInWithEmailAndPassword(getAuthInstance(), email, password);
+    return getRedirectPath(email);
+  };
+
+  const signUp = async (email: string, password: string): Promise<string> => {
     await createUserWithEmailAndPassword(getAuthInstance(), email, password);
+    return getRedirectPath(email);
   };
 
   const resetPassword = async (email: string) => {

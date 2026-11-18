@@ -1,29 +1,30 @@
-export default function Footer() {
+export default function Footer({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <footer>
       <div className="ft">
         <div>
           <b>SurakshaHealth India</b>
-          <p>
-            National Emergency Health Locker &amp; Trauma Access Portal. A GovTech
-            prototype aligned with UX4G 3.0 and ABDM.
+<p>
+            National Emergency Health Locker & Trauma Access Portal. A CSR Initiated by NIPER aligned with UX4G 3.0 and ABDM.
           </p>
         </div>
-        <div>
-          <b>Quick links</b>
-          <a href="#signin">Citizen login</a>
-          <a href="#signup">Register</a>
-          <a href="#forgot">Account recovery</a>
-        </div>
+        {!isLoggedIn && (
+          <div>
+            <b>Quick links</b>
+            <a href="#signin">Citizen login</a>
+            <a href="#signup">Register</a>
+            <a href="#forgot">Account recovery</a>
+          </div>
+        )}
         <div>
           <b>Policies</b>
           <a href="#signin">Privacy policy</a>
           <a href="#signin">Accessibility statement</a>
-          <a href="#signin">Help &amp; support</a>
+          <a href="#signin">Help & support</a>
         </div>
       </div>
       <div className="fb">
-        © SurakshaHealth India · Prototype only. Not an official Government of India service.
+        © SurakshaHealth India. CSR Initiated by NIPER.
       </div>
     </footer>
   );

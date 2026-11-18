@@ -5,7 +5,7 @@ export default function IntroSection() {
       <h1>Citizen Emergency Health Locker</h1>
       <p className="lead">
         Sign in to manage your ABHA-linked medical records, emergency QR smart card,
-        and family nominees under DPDP Act 2023 safeguards.
+        and emergency contacts under DPDP Act 2023 safeguards.
       </p>
 
       <div className="ecard" role="img" aria-label="Sample emergency health card showing blood group O positive, allergy and a QR code">
@@ -182,7 +182,7 @@ export default function IntroSection() {
         <div>
           <b>Golden Hour Road-Accident Access</b>
           <span>
-            Paramedics scan your helmet sticker or wallet QR to see your blood group,
+            Paramedics scan your QR to see your blood group,
             allergies, and blood thinners, even if you are unconscious.
           </span>
         </div>
@@ -193,8 +193,7 @@ export default function IntroSection() {
         <div>
           <b>DPDP Act 2023 Purpose-Limited Vault</b>
           <span>
-            Every emergency retrieval requires DOB + ID verification or Hospital
-            Break-Glass attestation and sends a live WhatsApp GPS pin to your family.
+            Every emergency retrieval requires basic information like name, email, phone number and provides you with the complete medical record required to start the treatment.
           </span>
         </div>
       </div>
@@ -209,8 +208,8 @@ export default function IntroSection() {
           <span>Emergency smart card</span>
         </div>
         <div>
-          <b>Family</b>
-          <span>Live GPS alerts</span>
+          <b>Record</b>
+          <span>Detailed Medical History</span>
         </div>
       </div>
     </section>
