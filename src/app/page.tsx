@@ -3,6 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useView } from "@/context/ViewContext";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AdminProvider } from "@/context/AdminContext";
 import Header from "@/components/layout/Header";
 import Nav from "@/components/layout/Nav";
@@ -17,6 +18,7 @@ import AdminDashboard from "@/app/admin/page";
 function HomeContent() {
   const { user, loading: authLoading } = useAuth();
   const { view, setView } = useView();
+  const router = useRouter();
   console.log("HomeContent render", { user: !!user, authLoading, view });
 
   useEffect(() => {

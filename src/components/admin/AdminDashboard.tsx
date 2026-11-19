@@ -152,34 +152,39 @@ html:has(#admin) {
 
 /* === DESIGN TOKENS (from reference) === */
 #admin {
-  --bg: #f4f6fa;
-  --surface: #fff;
-  --ink: #0f1f45;
-  --muted: #5b6784;
-  --line: #e2e7f0;
-  --navy: #0f1f45;
-  --saffron: #f28c28;
-  --green: #138808;
-  --ok-bg: #e6f4e4;
-  --ok: #0d6b05;
-  --warn-bg: #fff1dc;
-  --warn: #a3560a;
-  --bad-bg: #fde8e6;
-  --bad: #b3261e;
-  --info-bg: #e7eefc;
-  --info: #1d4bb8;
-  --ring: #2a5bd7;
-  --shadow: 0 1px 2px rgba(15,31,69,.06), 0 8px 24px rgba(15,31,69,.06);
---font-sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --bg: #f2f4f8;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --navy: #0f172a;
+  --navy-soft: #eef0f6;
+  --saffron: #f59e0b;
+  --saffron-soft: #fdf3e3;
+  --green: #15803d;
+  --ok-bg: #ecfdf5;
+  --ok: #166534;
+  --warn-bg: #fef3c7;
+  --warn: #92400e;
+  --bad-bg: #fee2e2;
+  --bad: #b91c1c;
+  --info-bg: #eff6ff;
+  --info: #1d4ed8;
+  --ring: #3b82f6;
+  --shadow: 0 1px 3px rgba(15,23,42,0.08), 0 8px 24px rgba(15,23,42,0.06);
+  --shadow-sm: 0 1px 2px rgba(15,23,42,0.06);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --font-sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-serif: "Source Serif 4", Georgia, serif;
 
-  max-width: 1440px;
+  max-width: none;
   margin: 0 auto;
-  padding: 4px 96px 56px;
+  padding: 0 0 56px;
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.55;
   background: var(--bg);
   min-height: 100vh;
   box-sizing: border-box;
@@ -231,9 +236,18 @@ html:has(#admin) {
 
 /* === PAGE HEADER (exact from reference) === */
 #admin .wrap {
-  max-width: 1440px;
+  max-width: none;
   margin: 0 auto;
-  padding: 4px 96px 56px;
+  padding: 24px 64px 56px;
+}
+#admin .admin-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 24px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 #admin .page-head {
   display: flex;
@@ -241,33 +255,34 @@ html:has(#admin) {
   align-items: flex-end;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 3px solid;
-  border-image: linear-gradient(90deg, var(--saffron) 33%, var(--line) 33% 66%, var(--green) 66%) 1;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
 }
 #admin h2 {
-  font: 700 28px/1.2 var(--font-serif) !important;
+  font: 700 26px/1.2 var(--font-serif);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 #admin .page-head p {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   color: var(--muted);
+  font-size: 13px;
 }
 #admin .who {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 8px 8px 8px 14px;
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
 }
 #admin .who small {
   display: block;
   color: var(--muted);
   font-size: 11px;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 #admin .who strong {
   font-size: 13px;
@@ -288,48 +303,52 @@ html:has(#admin) {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 36px;
-  padding: 0 14px;
+  height: 38px;
+  padding: 0 16px;
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
   cursor: pointer;
   white-space: nowrap;
+  transition: all 0.15s ease;
 }
-#admin .btn:hover:not(:disabled) { background: var(--bg); }
+#admin .btn:hover:not(:disabled) { background: var(--navy-soft); border-color: var(--line); }
+#admin .btn:active:not(:disabled) { transform: translateY(0.5px); }
 #admin .btn:disabled { opacity: .6; cursor: not-allowed; }
 #admin .btn.sm { height: 32px; padding: 0 12px; }
 #admin .btn.ok { background: var(--green); border-color: var(--green); color: #fff; }
-#admin .btn.ok:hover:not(:disabled) { background: #0f7006; }
+#admin .btn.ok:hover:not(:disabled) { background: #14532d; }
 #admin .btn.no { border-color: var(--bad); color: var(--bad); background: transparent; }
 #admin .btn.no:hover:not(:disabled) { background: var(--bad-bg); }
-#admin .spin { width: 12px; height: 12px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: adm-spin .8s linear infinite; display: inline-block; }
+#admin .spin { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: adm-spin .8s linear infinite; display: inline-block; }
 
 /* === STATS (exact from reference) === */
 #admin .stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-top: 48px;
-  margin-bottom: 20px;
+  margin-top: 40px;
+  margin-bottom: 32px;
 }
 #admin .stat {
   background: var(--surface);
   border: 1px solid var(--line);
   border-left: 4px solid var(--c);
-  border-radius: 12px;
-  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-#admin .stat b { display: block; font: 700 30px/1.1 var(--font-serif); }
-#admin .stat span { color: var(--muted); font-size: 13px; }
+#admin .stat:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+#admin .stat b { display: block; font: 700 32px/1.1 var(--font-serif); margin-bottom: 2px; }
+#admin .stat span { color: var(--muted); font-size: 12.5px; }
 
 /* === PANEL / TABLE (exact from reference) === */
 #admin .panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 #admin .toolbar {
@@ -338,13 +357,14 @@ html:has(#admin) {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  padding: 16px 20px;
+  padding: 18px 22px;
   border-bottom: 1px solid var(--line);
+  background: var(--surface);
 }
 #admin .search {
   position: relative;
-  flex: 1 1 260px;
-  max-width: 380px;
+  flex: 1 1 280px;
+  max-width: 420px;
   display: block;
 }
 #admin .search svg {
@@ -357,7 +377,7 @@ html:has(#admin) {
 }
 #admin .search input,
 #admin .afilters select {
-  height: 40px;
+  height: 44px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--bg);
@@ -367,12 +387,13 @@ html:has(#admin) {
   padding: 0 12px;
   width: 100%;
 }
-#admin .search input { padding-left: 38px; }
+#admin .search input { padding-left: 40px; }
+#admin .search input:focus { outline: 2px solid var(--ring); border-color: var(--ring); background: #fff; }
 #admin .afilters select { padding: 0 10px; font-size: 13px !important; }
 #admin .sr { position: absolute; left: -9999px; }
 #admin .seg {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 #admin .seg button {
@@ -380,18 +401,19 @@ html:has(#admin) {
   align-items: center;
   gap: 8px;
   height: 36px;
-  padding: 0 14px;
+  padding: 0 16px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: transparent;
-  color: var(--ink);
+  background: var(--bg);
+  color: var(--muted);
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 #admin .seg .n {
-  background: var(--bg);
+  background: rgba(15,23,42,0.08);
   border-radius: 999px;
   font-size: 11px;
-  padding: 1px 7px;
+  padding: 1px 8px;
   color: var(--muted);
 }
 #admin .seg button[aria-pressed="true"] {
@@ -403,29 +425,34 @@ html:has(#admin) {
   background: rgba(255,255,255,.18);
   color: #fff;
 }
+#admin .seg button:not([aria-pressed="true"]):hover { background: #e2e8f0; color: var(--ink); }
 
 #admin .scroll { overflow-x: auto; }
 #admin table { width: 100%; border-collapse: collapse; }
 #admin th {
   text-align: left;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   color: var(--muted);
-  padding: 12px 20px;
+  padding: 14px 20px;
   background: var(--bg);
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 #admin td {
-  padding: 14px 20px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
 }
+#admin tbody tr { transition: background 0.12s ease; }
+#admin tbody tr:hover { background: var(--navy-soft); }
 #admin tbody tr:last-child td { border-bottom: 0; }
 #admin .r { text-align: right; }
 #admin td.nw { white-space: nowrap; }
 #admin .muted { color: var(--muted); }
-#admin .empty { padding: 48px 20px; text-align: center; color: var(--muted); }
+#admin .empty { padding: 60px 20px; text-align: center; color: var(--muted); }
 #admin .person { display: flex; align-items: center; gap: 12px; min-width: 0; }
 #admin .av {
   width: 38px;
@@ -438,6 +465,7 @@ html:has(#admin) {
   font-weight: 700;
   font-size: 13px;
   flex: none;
+  color: var(--muted);
 }
 #admin .person strong { display: block; font-size: 14px; }
 #admin .person small { color: var(--muted); font-size: 12px; }
@@ -448,7 +476,7 @@ html:has(#admin) {
   border-radius: 999px;
   padding: 4px 10px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11.5px;
   white-space: nowrap;
 }
 #admin .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
@@ -462,40 +490,43 @@ html:has(#admin) {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(8,14,32,.55);
+  background: rgba(15,23,42,0.45);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 5vh 12px;
+  padding: 6vh 16px;
+  animation: adm-fade-in 0.2s ease;
 }
 #admin .sheet {
-  width: min(1040px, 100%);
+  width: min(1080px, 100%);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   background: var(--surface);
-  border-radius: 14px;
-  box-shadow: 0 24px 64px rgba(0,0,0,.35);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 64px rgba(15,23,42,0.25);
   overflow: hidden;
+  animation: adm-slide-up 0.25s ease;
 }
 #admin .sheet-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  padding: 18px 22px;
+  padding: 20px 24px;
   background: var(--navy);
   color: #fff;
 }
 #admin .sheet-head h3 { margin: 0; font: 700 20px/1.2 var(--font-serif); }
 #admin .sheet-head p { margin: 4px 0 0; font-size: 13px; color: #b9c5e6; }
-#admin .x { background: transparent; border: 1px solid #3b4a78; color: #fff; border-radius: 10px; height: 34px; padding: 0 12px; cursor: pointer; }
-#admin .x:hover { background: rgba(255,255,255,.1); }
+#admin .x { background: transparent; border: 1px solid #3b4a78; color: #fff; border-radius: 10px; height: 34px; padding: 0 12px; cursor: pointer; transition: background 0.15s ease; }
+#admin .x:hover { background: rgba(255,255,255,.12); }
 #admin .meta {
   display: flex;
   gap: 10px 24px;
   flex-wrap: wrap;
-  padding: 12px 22px;
+  padding: 14px 24px;
   border-bottom: 1px solid var(--line);
   font-size: 13px;
   color: var(--muted);
@@ -506,15 +537,15 @@ html:has(#admin) {
   gap: 10px;
   flex-wrap: wrap;
   align-items: center;
-  padding: 12px 22px;
+  padding: 14px 24px;
   border-bottom: 1px solid var(--line);
 }
-#admin .afilters .search { max-width: 300px; }
+#admin .afilters .search { max-width: 320px; }
 #admin .afilters .btn { margin-left: auto; }
-#admin .alog { overflow: auto; flex: 1; min-height: 120px; }
-#admin .alog table { min-width: 820px; }
-#admin .alog thead th { position: sticky; top: 0; z-index: 1; }
-#admin .ts b { display: block; font-weight: 600; font-size: 14px; }
+#admin .alog { overflow: auto; flex: 1; min-height: 140px; }
+#admin .alog table { min-width: 860px; }
+#admin .alog thead th { position: sticky; top: 0; z-index: 1; background: var(--bg); }
+#admin .ts b { display: block; font-weight: 600; font-size: 13px; }
 #admin .ts small { color: var(--muted); font-size: 12px; }
 #admin .chip {
   display: inline-block;
@@ -535,7 +566,7 @@ html:has(#admin) {
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 12px 22px;
+  padding: 14px 24px;
   border-top: 1px solid var(--line);
   font-size: 12px;
   color: var(--muted);
@@ -545,32 +576,41 @@ html:has(#admin) {
 #admin .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
+  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%) translateY(10px);
   background: var(--navy);
   color: #fff;
-  padding: 10px 16px;
+  padding: 10px 18px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 13.5px;
+  font-weight: 600;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .2s;
+  transition: opacity .2s ease, transform .2s ease;
   z-index: 60;
+  box-shadow: var(--shadow);
 }
-#admin .toast.show { opacity: 1; }
+#admin .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* === RESPONSIVE (exact from reference) === */
 @media (max-width: 760px) {
-  #admin .wrap { padding: 24px 16px 40px; }
+  #admin { padding: 20px 16px 48px; }
+  #admin .wrap { padding: 20px 0 40px; }
   #admin .stats { grid-template-columns: repeat(2, 1fr); }
-  #admin h2 { font-size: 24px; }
+  #admin h2 { font-size: 22px; }
   #admin .overlay { padding: 0; }
   #admin .sheet { max-height: 100%; height: 100%; border-radius: 0; }
   #admin .afilters .btn { margin-left: 0; }
+  #admin .toolbar { flex-direction: column; align-items: stretch; gap: 12px; }
+  #admin .search { max-width: none; }
+  #admin table { font-size: 13px; }
+  #admin th, #admin td { padding: 10px 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   #admin * { transition: none !important; animation: none !important; }
 }
+@keyframes adm-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes adm-slide-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 `;
 
 const AdminStyles = () => <style dangerouslySetInnerHTML={{ __html: ADMIN_CSS }} />;
@@ -717,7 +757,7 @@ export default function AdminDashboard() {
     const q = auditSearch.trim().toLowerCase();
     const filteredLogs = auditLogs.filter((l) => {
       const matchesAction = !auditActionFilter || l.action === auditActionFilter;
-      const text = [l.performedBy, ipOf(l), detail(l.details), ACTION_LABELS[l.action]?.label || l.action].join(" ").toLowerCase();
+      const text = [l.performedBy, (l.details as any)?.responderName || "", (l.details as any)?.responderPhone || "", ipOf(l), detail(l.details), ACTION_LABELS[l.action]?.label || l.action].join(" ").toLowerCase();
       return matchesAction && (!q || text.includes(q));
     });
 
@@ -745,7 +785,7 @@ export default function AdminDashboard() {
             <label className="search">
               <span className="sr">Search logs</span>
               <SearchIcon />
-              <input type="search" placeholder="Search by IP, user or details" value={auditSearch} onChange={(e) => setAuditSearch(e.target.value)} />
+              <input type="search" placeholder="Search by name, phone, IP or details" value={auditSearch} onChange={(e) => setAuditSearch(e.target.value)} />
             </label>
             <label>
               <span className="sr">Filter by action</span>
@@ -786,7 +826,13 @@ export default function AdminDashboard() {
                           {ACTION_LABELS[log.action]?.label || log.action}
                         </span>
                       </td>
-                      <td>{log.performedBy}</td>
+                      <td>
+                        <div style={{ fontSize: 12.5, lineHeight: 1.4 }}>
+                          <div style={{ color: "var(--ink)", fontWeight: 600 }}>{(log.details as any)?.responderName || log.performedBy || "—"}</div>
+                          {(log.details as any)?.responderPhone && <div style={{ color: "var(--muted)", fontSize: 11 }}>📞 {(log.details as any).responderPhone}</div>}
+                          <div style={{ color: "var(--muted)", fontSize: 11 }}>{log.performedBy || "—"}</div>
+                        </div>
+                      </td>
                       <td className="nw"><span className="ip">{ipOf(log) || "—"}</span></td>
                       <td className="muted">{detail(log.details)}</td>
                     </tr>
@@ -815,103 +861,105 @@ export default function AdminDashboard() {
     <main id="admin">
       <AdminStyles />
       <div className="wrap">
-        <div className="page-head">
-          <div>
-            <h2>Admin dashboard</h2>
-            <p>
-              {count("all")} total profiles · {count("pending")} pending · {count("approved")} approved · {count("rejected")} rejected
-            </p>
-          </div>
-          <div className="who">
-            <div><small>Signed in as</small><strong>{user?.email}</strong></div>
-            <button type="button" className="btn sm" onClick={handleLogout}>Sign out</button>
-          </div>
-        </div>
-
-        <div className="stats">
-          {statCards.map((s) => (
-            <div key={s.label} className="stat" style={{ "--c": s.color } as React.CSSProperties}>
-              <b>{s.value}</b>
-              <span>{s.label}</span>
+        <div className="admin-card">
+          <div className="page-head">
+            <div>
+              <h2>Admin dashboard</h2>
+              <p>
+                {count("all")} total profiles · {count("pending")} pending · {count("approved")} approved · {count("rejected")} rejected
+              </p>
             </div>
-          ))}
-        </div>
-
-        <section className="panel" aria-label="Citizen profiles">
-          <div className="toolbar">
-            <label className="search">
-              <span className="sr">Search profiles</span>
-              <SearchIcon />
-              <input type="search" placeholder="Search by name, email or ABHA ID" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-            </label>
-            <div className="seg" role="group" aria-label="Filter by status">
-              {(["all", "pending", "approved", "rejected"] as const).map((f) => (
-                <button type="button" key={f} aria-pressed={statusFilter === f} onClick={() => setStatusFilter(f)}>
-                  {f.charAt(0).toUpperCase() + f.slice(1)}
-                  <span className="n">{count(f)}</span>
-                </button>
-              ))}
+            <div className="who">
+              <div><small>Signed in as</small><strong>{user?.email}</strong></div>
+              <button type="button" className="btn sm" onClick={handleLogout}>Sign out</button>
             </div>
           </div>
 
-          <div className="scroll">
-            <table style={{ minWidth: 760 }}>
-              <thead>
-                <tr>
-                  <th>Citizen</th>
-                  <th>Email</th>
-                  <th>Submitted</th>
-                  <th>ABHA ID</th>
-                  <th>Status</th>
-                  <th className="r">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProfiles.length === 0 ? (
-                  <tr><td colSpan={6} className="empty">No profiles match. Try a different search or filter.</td></tr>
-                ) : (
-                  filteredProfiles.map((p) => {
-                    const name = fullName(p) || "Unnamed";
-                    const abha = p.abha || p.abhaId;
-                    const rowBusy = busy?.uid === p.uid;
-                    return (
-                      <tr key={p.uid}>
-                        <td>
-                          <div className="person">
-                            <div className="av">{getInitials(name)}</div>
-                            <div>
-                              <strong>{name}</strong>
-                              <small>{abha ? "ABHA linked" : "No ABHA"}</small>
+          <div className="stats">
+            {statCards.map((s) => (
+              <div key={s.label} className="stat" style={{ "--c": s.color } as React.CSSProperties}>
+                <b>{s.value}</b>
+                <span>{s.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <section className="panel" aria-label="Citizen profiles">
+            <div className="toolbar">
+              <label className="search">
+                <span className="sr">Search profiles</span>
+                <SearchIcon />
+                <input type="search" placeholder="Search by name, email or ABHA ID" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              </label>
+              <div className="seg" role="group" aria-label="Filter by status">
+                {(["all", "pending", "approved", "rejected"] as const).map((f) => (
+                  <button type="button" key={f} aria-pressed={statusFilter === f} onClick={() => setStatusFilter(f)}>
+                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                    <span className="n">{count(f)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="scroll">
+              <table style={{ minWidth: 760 }}>
+                <thead>
+                  <tr>
+                    <th>Citizen</th>
+                    <th>Email</th>
+                    <th>Submitted</th>
+                    <th>ABHA ID</th>
+                    <th>Status</th>
+                    <th className="r">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProfiles.length === 0 ? (
+                    <tr><td colSpan={6} className="empty">No profiles match. Try a different search or filter.</td></tr>
+                  ) : (
+                    filteredProfiles.map((p) => {
+                      const name = fullName(p) || "Unnamed";
+                      const abha = p.abha || p.abhaId;
+                      const rowBusy = busy?.uid === p.uid;
+                      return (
+                        <tr key={p.uid}>
+                          <td>
+                            <div className="person">
+                              <div className="av">{getInitials(name)}</div>
+                              <div>
+                                <strong>{name}</strong>
+                                <small>{abha ? "ABHA linked" : "No ABHA"}</small>
+                              </div>
+                          </div>
+                          </td>
+                          <td>{p.email || "—"}</td>
+                          <td className="muted nw">{formatDate(p.createdAt as Timestamp)}</td>
+                          <td className="muted">{abha || "—"}</td>
+                          <td><StatusBadge status={statusOf(p)} /></td>
+                          <td className="nw">
+                            <div className="acts">
+                              {statusOf(p) === "pending" && (
+                                <>
+                                  <button type="button" className="btn sm ok" onClick={() => handleApprove(p.uid)} disabled={rowBusy}>
+                                    {rowBusy && busy?.type === "approve" ? <><span className="spin" /> Approving…</> : "✓ Approve"}
+                                  </button>
+                                  <button type="button" className="btn sm no" onClick={() => handleReject(p.uid)} disabled={rowBusy}>
+                                    {rowBusy && busy?.type === "reject" ? <><span className="spin" /> Rejecting…</> : "✗ Reject"}
+                                  </button>
+                                </>
+                              )}
+                              <button type="button" className="btn sm" onClick={() => handleViewLogs(p.uid)}>Audit logs</button>
                             </div>
-                          </div>
-                        </td>
-                        <td>{p.email || "—"}</td>
-                        <td className="muted nw">{formatDate(p.createdAt as Timestamp)}</td>
-                        <td className="muted">{abha || "—"}</td>
-                        <td><StatusBadge status={statusOf(p)} /></td>
-                        <td className="nw">
-                          <div className="acts">
-                            {statusOf(p) === "pending" && (
-                              <>
-                                <button type="button" className="btn sm ok" onClick={() => handleApprove(p.uid)} disabled={rowBusy}>
-                                  {rowBusy && busy?.type === "approve" ? <><span className="spin" /> Approving…</> : "✓ Approve"}
-                                </button>
-                                <button type="button" className="btn sm no" onClick={() => handleReject(p.uid)} disabled={rowBusy}>
-                                  {rowBusy && busy?.type === "reject" ? <><span className="spin" /> Rejecting…</> : "✗ Reject"}
-                                </button>
-                              </>
-                            )}
-                            <button type="button" className="btn sm" onClick={() => handleViewLogs(p.uid)}>Audit logs</button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
 
         {renderAuditModal()}
 

@@ -11,7 +11,7 @@ export default function Header() {
       <div className="tri" />
       <div className="util">
         <div>
-          <span>🇮🇳 CSR Initiated by NIPER, ABDM aligned portal for citizens</span>
+          <span>🇮🇳 CSR initiative by NIPER, ABDM aligned portal for citizens</span>
           <span className="fs">
             <a href="#main">Skip to main content</a> | Text size{" "}
             <button
@@ -55,7 +55,7 @@ export default function Header() {
           <div className="bt">
             <b>
               SurakshaHealth India
-              <em className="badge">CSR Initiated by NIPER, ABDM aligned portal for citizens</em>
+              <em className="badge">CSR initiative by NIPER, ABDM aligned portal for citizens</em>
             </b>
             <span className="tag">
               National Emergency Health Locker & Trauma Access Portal • UX4G 3.0 & ABDM Aligned

@@ -24,7 +24,7 @@ export async function GET(
       );
     }
 
-    const { reports, vaccinations, photo, aadhaar, ...emergencyData } = profile;
+    const { vaccinations, photo, aadhaar, ...emergencyData } = profile;
     const responseData = { ...emergencyData, uid };
 
     return NextResponse.json({ profile: responseData });

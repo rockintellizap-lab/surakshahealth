@@ -198,7 +198,7 @@ export default function ResponderVerification({
         </form>
 
         <div style={{ marginTop: 24, textAlign: "center", fontSize: 13, color: "#59627c" }}>
-          Powered by SurakshaHealth India · ABDM Aligned · CSR Initiated by NIPER
+          Powered by SurakshaHealth India · ABDM Aligned · CSR initiative by NIPER
         </div>
       </div>
     </main>

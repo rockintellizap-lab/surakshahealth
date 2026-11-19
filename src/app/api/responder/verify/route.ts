@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       userAgent: userAgent || "unknown",
     });
 
-    const { reports, vaccinations, photo, aadhaar, ...emergencyData } = profile;
+    const { vaccinations, photo, aadhaar, ...emergencyData } = profile;
     const responseData: EmergencyProfile & { uid: string } = {
       ...emergencyData,
       uid,

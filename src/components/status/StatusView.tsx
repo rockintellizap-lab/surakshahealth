@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useView } from "@/context/ViewContext";
-import { getProfile, getAuditLogs, logProfileAccess } from "@/lib/profileService";
+import { getProfile, logProfileAccess } from "@/lib/profileService";
 
 export default function StatusView() {
   const { user, logout } = useAuth();
@@ -13,22 +13,6 @@ export default function StatusView() {
   const [appId, setAppId] = useState("");
   const [submittedOn, setSubmittedOn] = useState("");
   const [targetUid, setTargetUid] = useState<string>("");
-  const [auditLogs, setAuditLogs] = useState<any[]>([]);
-  const [showAuditLogs, setShowAuditLogs] = useState(false);
-  const [logsLoading, setLogsLoading] = useState(false);
-
-  const loadAuditLogs = useCallback(async (uid: string) => {
-    setLogsLoading(true);
-    try {
-      const logs = await getAuditLogs(uid, 50);
-      setAuditLogs(logs);
-    } catch (err) {
-      console.error("Failed to load audit logs:", err);
-      setAuditLogs([]);
-    } finally {
-      setLogsLoading(false);
-    }
-  }, []);
 
   const loadProfile = useCallback(async (uid: string) => {
     setLoading(true);
@@ -155,111 +139,12 @@ export default function StatusView() {
               <button type="button" className="btn ghost" onClick={handleEditProfile}>
                 Edit profile
               </button>
-              <button type="button" className="btn ghost" onClick={() => { loadAuditLogs(targetUid); setShowAuditLogs(true); }}>
-                View Access Logs
-              </button>
             </div>
           </div>
         </section>
       </main>
     );
   }
-
-  const renderAuditModal = () => {
-    if (!showAuditLogs) return null;
-
-    const actions = Array.from(new Set(auditLogs.map((l) => l.action)));
-
-    return (
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(15,33,89,0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 24,
-          zIndex: 1000,
-        }}
-        onClick={() => setShowAuditLogs(false)}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="audit-title"
-      >
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 16,
-            maxWidth: 900,
-            width: "100%",
-            maxHeight: "80vh",
-            overflow: "auto",
-            boxShadow: "0 24px 48px rgba(15,33,89,.24)",
-          }}
-          onClick={e => e.stopPropagation()}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--line)" }}>
-            <h3 id="audit-title" style={{ margin: 0, fontSize: 18 }}>Access logs for your profile</h3>
-            <button
-              type="button"
-              onClick={() => setShowAuditLogs(false)}
-              aria-label="Close"
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: 22,
-                cursor: "pointer",
-                color: "var(--muted)",
-                lineHeight: 1,
-                padding: "0 8px",
-              }}
-            >
-              ✕
-            </button>
-          </div>
-          <div style={{ padding: 20 }}>
-            {logsLoading ? (
-              <div style={{ padding: 32, textAlign: "center" }}>Loading access logs…</div>
-            ) : auditLogs.length === 0 ? (
-              <div style={{ padding: 32, textAlign: "center", color: "var(--muted)" }}>No access logs found.</div>
-            ) : (
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-                  <thead>
-                    <tr style={{ background: "var(--saffron-l)", textAlign: "left" }}>
-                      <th style={{ padding: "10px 12px" }}>Date & Time</th>
-                      <th style={{ padding: "10px 12px" }}>Action</th>
-                      <th style={{ padding: "10px 12px" }}>Performed By</th>
-                      <th style={{ padding: "10px 12px" }}>Details</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {auditLogs.map((log, idx) => (
-                      <tr key={log.id || idx} style={{ borderTop: "1px solid var(--line)" }}>
-                        <td style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>
-                          {log.performedAt?.toDate ? log.performedAt.toDate().toLocaleString("en-IN") : "—"}
-                        </td>
-                        <td style={{ padding: "10px 12px" }}>
-                          <span className="pill" style={{ background: "var(--saffron-l)", color: "var(--saffron-d)", fontSize: 11, textTransform: "capitalize" }}>
-                            {log.action}
-                          </span>
-                        </td>
-                        <td style={{ padding: "10px 12px" }}>{log.performedBy}</td>
-                        <td style={{ padding: "10px 12px", color: "var(--muted)", fontSize: 13 }}>
-                          {log.details ? JSON.stringify(log.details) : "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <main id="status" className="single">
@@ -308,13 +193,9 @@ export default function StatusView() {
             <button type="button" className="btn ghost" onClick={handleEditProfile}>
               Edit profile
             </button>
-            <button type="button" className="btn ghost" onClick={() => { loadAuditLogs(targetUid); setShowAuditLogs(true); }}>
-              View Access Logs
-            </button>
           </div>
         </div>
       </section>
-      {renderAuditModal()}
     </main>
   );
 }

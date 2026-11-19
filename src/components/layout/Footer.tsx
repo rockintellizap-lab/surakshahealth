@@ -5,7 +5,7 @@ export default function Footer({ isLoggedIn }: { isLoggedIn: boolean }) {
         <div>
           <b>SurakshaHealth India</b>
 <p>
-            National Emergency Health Locker & Trauma Access Portal. A CSR Initiated by NIPER aligned with UX4G 3.0 and ABDM.
+            National Emergency Health Locker & Trauma Access Portal. A CSR initiative by NIPER aligned with UX4G 3.0 and ABDM.
           </p>
         </div>
         {!isLoggedIn && (
@@ -24,7 +24,7 @@ export default function Footer({ isLoggedIn }: { isLoggedIn: boolean }) {
         </div>
       </div>
       <div className="fb">
-        © SurakshaHealth India. CSR Initiated by NIPER.
+        © SurakshaHealth India. CSR initiative by NIPER.
       </div>
     </footer>
   );

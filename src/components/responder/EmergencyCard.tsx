@@ -24,6 +24,7 @@ interface EmergencyProfile {
   sc_mob?: string;
   abha?: string;
   approvedAt?: any;
+  reports?: any;
 }
 
 export default function EmergencyCard({
@@ -51,6 +52,7 @@ export default function EmergencyCard({
 
   const allergies = parseJSON(profile.allergies);
   const medications = parseJSON(profile.medications);
+  const reports = parseJSON(profile.reports);
 
   const handlePrint = () => {
     if (printRef.current) {
@@ -114,78 +116,136 @@ export default function EmergencyCard({
         <em className="verified" style={{ fontStyle: "normal", fontSize: 11, fontWeight: 700, background: "#138808", color: "#fff", borderRadius: 3, padding: "4px 12px" }}>VERIFIED</em>
       </div>
 
-      <div className="body" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, padding: "24px 20px" }}>
-        <div>
-          <div className="section">
-            <h3>Patient Identity</h3>
-            <dl className="grid">
-              <div><dt>Full Name</dt><dd style={{ fontSize: 20, fontWeight: 800 }}>{fullName}</dd></div>
-              <div><dt>Date of Birth</dt><dd>{dob}</dd></div>
-              <div><dt>Gender</dt><dd>{profile.gender || "—"}</dd></div>
-              <div><dt>Blood Group</dt><dd className="blood">{profile.bg || "—"}</dd></div>
-              <div><dt>ABHA ID</dt><dd style={{ fontFamily: "monospace", fontSize: 13 }}>{abhaDisplay}</dd></div>
-            </dl>
+      <div className="body" style={{ padding: "24px 20px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+          <div>
+            <div className="section">
+              <h3>Patient Identity</h3>
+              <dl className="grid" style={{ gridTemplateColumns: "150px 1fr" }}>
+                <dt>Full Name</dt>
+                <dd style={{ fontSize: 20, fontWeight: 800 }}>{fullName}</dd>
+                <dt>Date of Birth</dt>
+                <dd>{dob}</dd>
+                <dt>Gender</dt>
+                <dd>{profile.gender || "—"}</dd>
+                <dt>Blood Group</dt>
+                <dd className="blood">{profile.bg || "—"}</dd>
+                <dt>ABHA ID</dt>
+                <dd style={{ fontFamily: "monospace", fontSize: 13 }}>{abhaDisplay}</dd>
+              </dl>
+            </div>
+
+            <div className="section" style={{ marginTop: 16 }}>
+              <h3>Emergency Contacts</h3>
+              <div className="contacts">
+                <div className="contact">
+                  <div className="name">{profile.pc_name || "—"} <span style={{ fontWeight: 400, color: "#59627c", fontSize: 13 }}>({profile.pc_rel || "Primary"})</span></div>
+                  <div className="meta">
+                    <a href={`tel:${profile.pc_mob}`} style={{ color: "#0f2159", textDecoration: "none" }}>{profile.pc_mob}</a>
+                    {profile.pc_alt && <span style={{ marginLeft: 12 }}><a href={`tel:${profile.pc_alt}`} style={{ color: "#0f2159" }}>{profile.pc_alt}</a></span>}
+                  </div>
+                </div>
+                {profile.sc_name && profile.sc_mob && (
+                  <div className="contact">
+                    <div className="name">{profile.sc_name} <span style={{ fontWeight: 400, color: "#59627c", fontSize: 13 }}>({profile.sc_rel || "Secondary"})</span></div>
+                    <div className="meta"><a href={`tel:${profile.sc_mob}`} style={{ color: "#0f2159", textDecoration: "none" }}>{profile.sc_mob}</a></div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="section" style={{ marginTop: 16 }}>
-            <h3>Emergency Contacts</h3>
-            <div className="contacts">
-              <div className="contact">
-                <div className="name">{profile.pc_name || "—"} <span style={{ fontWeight: 400, color: "#59627c", fontSize: 13 }}>({profile.pc_rel || "Primary"})</span></div>
-                <div className="meta">
-                  <a href={`tel:${profile.pc_mob}`} style={{ color: "#0f2159", textDecoration: "none" }}>{profile.pc_mob}</a>
-                  {profile.pc_alt && <span style={{ marginLeft: 12 }}><a href={`tel:${profile.pc_alt}`} style={{ color: "#0f2159" }}>{profile.pc_alt}</a></span>}
-                </div>
-              </div>
-              {profile.sc_name && profile.sc_mob && (
-                <div className="contact">
-                  <div className="name">{profile.sc_name} <span style={{ fontWeight: 400, color: "#59627c", fontSize: 13 }}>({profile.sc_rel || "Secondary"})</span></div>
-                  <div className="meta"><a href={`tel:${profile.sc_mob}`} style={{ color: "#0f2159", textDecoration: "none" }}>{profile.sc_mob}</a></div>
-                </div>
+          <div>
+            <div className="section">
+              <h3>Allergies</h3>
+              {allergies.length > 0 ? (
+                <ul className="list">
+                  {allergies.map((a: any, i: number) => (
+                    <li key={i}><b>{a.name}</b> — {a.react || "Reaction not specified"} {a.sev && `• Severity: ${a.sev}`}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p style={{ color: "#59627c", margin: 0 }}>No allergies reported</p>
               )}
+            </div>
+
+            <div className="section" style={{ marginTop: 16 }}>
+              <h3>Current Medications</h3>
+              {medications.length > 0 ? (
+                <ul className="list">
+                  {medications.map((m: any, i: number) => (
+                    <li key={i}><b>{m.name}</b> — {m.purpose || "Purpose not specified"}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p style={{ color: "#59627c", margin: 0 }}>No medications reported</p>
+              )}
+            </div>
+
+            <div className="section" style={{ marginTop: 16 }}>
+              <h3>Medical History</h3>
+              <dl className="grid" style={{ fontSize: 13, gridTemplateColumns: "150px 1fr" }}>
+                {profile.chronic && (
+                  <>
+                    <dt>Chronic Conditions</dt>
+                    <dd>{profile.chronic}</dd>
+                  </>
+                )}
+                {profile.ill && (
+                  <>
+                    <dt>Previous Illnesses</dt>
+                    <dd>{profile.ill}</dd>
+                  </>
+                )}
+                {profile.ltt && (
+                  <>
+                    <dt>Long-term Treatments</dt>
+                    <dd>{profile.ltt}</dd>
+                  </>
+                )}
+                {profile.inf && (
+                  <>
+                    <dt>Infections</dt>
+                    <dd>{profile.inf}</dd>
+                  </>
+                )}
+                {!profile.chronic && !profile.ill && !profile.ltt && !profile.inf && (
+                  <p style={{ color: "#59627c", margin: 0, gridColumn: "1 / -1" }}>
+                    No significant history reported
+                  </p>
+                )}
+              </dl>
             </div>
           </div>
         </div>
 
-        <div>
-          <div className="section">
-            <h3>Allergies</h3>
-            {allergies.length > 0 ? (
-              <ul className="list">
-                {allergies.map((a: any, i: number) => (
-                  <li key={i}><b>{a.name}</b> — {a.react || "Reaction not specified"} {a.sev && `• Severity: ${a.sev}`}</li>
-                ))}
-              </ul>
-            ) : (
-              <p style={{ color: "#59627c", margin: 0 }}>No allergies reported</p>
-            )}
-          </div>
-
-          <div className="section" style={{ marginTop: 16 }}>
-            <h3>Current Medications</h3>
-            {medications.length > 0 ? (
-              <ul className="list">
-                {medications.map((m: any, i: number) => (
-                  <li key={i}><b>{m.name}</b> — {m.purpose || "Purpose not specified"}</li>
-                ))}
-              </ul>
-            ) : (
-              <p style={{ color: "#59627c", margin: 0 }}>No medications reported</p>
-            )}
-          </div>
-
-          <div className="section" style={{ marginTop: 16 }}>
-            <h3>Medical History</h3>
-            <dl className="grid" style={{ fontSize: 13 }}>
-              {profile.chronic && <div><dt>Chronic Conditions</dt><dd>{profile.chronic}</dd></div>}
-              {profile.ill && <div><dt>Previous Illnesses</dt><dd>{profile.ill}</dd></div>}
-              {profile.ltt && <div><dt>Long-term Treatments</dt><dd>{profile.ltt}</dd></div>}
-              {profile.inf && <div><dt>Infections</dt><dd>{profile.inf}</dd></div>}
-              {!profile.chronic && !profile.ill && !profile.ltt && !profile.inf && (
-                <p style={{ color: "#59627c", margin: 0 }}>No significant history reported</p>
-              )}
-            </dl>
-          </div>
+        <div className="section" style={{ marginTop: 24 }}>
+          <h3>Medical Reports</h3>
+          {reports.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {reports.map((r: any, i: number) => (
+                <div key={i} style={{ background: "#fff", border: "1px solid #e8ecf3", borderRadius: 8, padding: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <b style={{ fontSize: 13, color: "#0f2159" }}>{r.name || `Report ${i + 1}`}</b>
+                    <span style={{ fontSize: 11, color: "#59627c", background: "#eef2f8", padding: "2px 8px", borderRadius: 4 }}>{r.type?.split("/")[1] || "file"}</span>
+                  </div>
+                  <a
+                    href={r.url || r.file}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#0f2159", textDecoration: "none", fontWeight: 600 }}
+                  >
+                    👁 View Report
+                  </a>
+                  <div style={{ fontSize: 11, color: "#59627c", marginTop: 4 }}>
+                    {r.size ? `${Math.round(r.size / 1024)} KB` : ""} {r.size && r.uploadedAt ? " · " : ""}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: "#59627c", margin: 0 }}>No medical reports available</p>
+          )}
         </div>
       </div>
 
