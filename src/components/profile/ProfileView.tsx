@@ -423,6 +423,15 @@ export default function ProfileView() {
             size: row.size,
             type: row.type,
           });
+        } else if (row.url && typeof row.url === "string" && row.url.startsWith("http")) {
+          // Newly added via "Add Report" or ReportManager — has url but no file property
+          uploadedReports.push({
+            name: row.name || row.file_name,
+            file: row.url,
+            file_name: row.file_name || row.name,
+            size: row.size,
+            type: row.type,
+          });
         }
       }
 
